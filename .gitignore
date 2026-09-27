@@ -1,0 +1,11 @@
+# 测试依赖（仅本地验证用，非项目产物）
+node_modules/
+package.json
+package-lock.json
+
+# 沙箱/工具隐藏目录
+.codebuddy/
+
+# 临时图片与日志
+*.png
+*.log
