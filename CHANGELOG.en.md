@@ -2,6 +2,17 @@
 
 > This project follows [Semantic Versioning](https://semver.org/). Format per [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+
+- README (bilingual): top badges, a "Try it online" entry, and a "🙏 Credits & Dependencies" section
+- New `index.html`: GitHub Pages root entry page that redirects to the generator
+
+### Changed
+
+- Enabled GitHub Pages (source: `main` branch, root); live at <https://xiaoyu-hue.github.io/xy-intro-card/>
+
 ## [1.0.0] - 2026-09-27
 
 ### Added
