@@ -23,3 +23,11 @@
 | `xy-intro-card`（本仓库） | 个人介绍名片工具 | 可复用的成员个人名片生成器，与官网模板配套 |
 
 > XY俱乐部 仅是本系列项目的**默认演示案例**，非专属品牌。
+
+---
+
+## 完整故事在这里
+
+作者的完整自述、四个原创作品的清单，以及那场"**AI Agent 能把非程序员的生产边界推到哪里**"的实验记录，都集中在：
+
+**→ [github.com/xiaoyu-hue/xiaoyu-hue](https://github.com/xiaoyu-hue/xiaoyu-hue)**
