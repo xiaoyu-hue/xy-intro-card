@@ -2,6 +2,17 @@
 
 > 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [未发布]
+
+### 新增
+
+- README（中英双语）：补全顶部徽章、「在线体验」入口与「🙏 致谢与依赖」章节
+- 新增 `index.html`：GitHub Pages 根路径入口页，自动跳转到生成器
+
+### 变更
+
+- 启用 GitHub Pages（源：`main` 分支根目录），在线体验地址：<https://xiaoyu-hue.github.io/xy-intro-card/>
+
 ## [1.0.0] - 2026-09-27
 
 ### 新增
