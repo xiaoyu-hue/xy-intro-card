@@ -147,6 +147,18 @@
       <input type="text" id="signEn" value="Half for the warmth of daily life to make a living, half for poetry to seek love.">
     </div>
 
+    <!-- Footer 自定义设置 -->
+    <div class="field">
+      <label>卡片底部版权行</label>
+      <select id="footMode">
+        <option value="default">默认：© 俱乐部名 · 人名</option>
+        <option value="produce">俱乐部出品 · 人名专属</option>
+        <option value="custom">自定义文案</option>
+        <option value="hidden">隐藏（不显示）</option>
+      </select>
+      <input type="text" id="footCustom" placeholder="输入自定义文案..." style="margin-top:8px;display:none" maxlength="50">
+    </div>
+
     <div class="field">
       <label>头像</label>
       <div class="avatar-row">
@@ -529,6 +541,9 @@ function readCfg(){
     c.contact = splitCsv(val('contact')).slice(0,5).map(s=>s.slice(0,50));
     c.signCn = (val('signCn')||'').trim().slice(0,50); c.signEn = (val('signEn')||'').trim().slice(0,50);
   }
+  // Footer 配置
+  c.footMode = val('footMode');
+  c.footCustom = (val('footCustom')||'').trim().slice(0,50);
   return c;
 }
 function val(id){ var el=document.getElementById(id); return el?el.value:''; }
@@ -587,7 +602,17 @@ function buildDoc(c, opts){
   const sub = c.mode==='oc' ? (c.name||'') : (c.script||'');
   const fav = favicon(c,a,b);
   const rootVars = ":root{--amber:"+a+";--amber-2:"+b+";--amber-rgb:"+hexToRgb(a).join(',')+";--amber-2-rgb:"+hexToRgb(b).join(',')+";--blob1:"+blobs[0]+";--blob2:"+blobs[1]+";--blob3:"+blobs[2]+";}";
-  const foot = "<div class='foot'>© "+esc(c.title)+" · "+esc(sub)+"</div>";
+  // Footer 逻辑
+  let footHTML = '';
+  if (c.footMode === 'hidden') {
+    footHTML = '';  // 隐藏
+  } else if (c.footMode === 'custom' && c.footCustom) {
+    footHTML = "<div class='foot'>"+esc(c.footCustom)+"</div>";  // 自定义文案
+  } else if (c.footMode === 'produce') {
+    footHTML = "<div class='foot'>"+esc(c.title)+"出品 · "+esc(sub)+"专属</div>";  // 俱乐部出品
+  } else {
+    footHTML = "<div class='foot'>© "+esc(c.title)+" · "+esc(sub)+"</div>";  // 默认
+  }
   return "<!DOCTYPE html>\n<html lang='zh-CN'>\n<head>\n<meta charset='UTF-8'>\n"+
     "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>\n"+
     "<meta name='theme-color' content='#06060b'>\n"+
@@ -595,7 +620,7 @@ function buildDoc(c, opts){
     "<title>"+esc(titleText)+"</title>\n"+
     "<link rel='icon' href='"+fav+"'>\n<style>\n"+rootVars+"\n"+CARD_CSS+"\n</style>\n</head>\n<body>\n"+
     "<div class='stage' id='stage'>\n  <div class='blob b1'></div>\n  <div class='blob b2'></div>\n  <div class='blob b3'></div>\n"+
-    "  <main class='card' id='card'>\n"+inner+"  </main>\n</div>\n"+foot+"\n"+
+    "  <main class='card' id='card'>\n"+inner+"  </main>\n</div>\n"+footHTML+"\n"+
     "<script>"+INTERACT_JS+"<\/script>\n</body>\n</html>";
 }
 
@@ -722,8 +747,10 @@ function setup(){
 
   // 重置
   document.getElementById('reset').addEventListener('click', function(){
-    document.querySelectorAll('input[type=text], textarea').forEach(function(el){ if(el.id!=='customColor') el.value = el.defaultValue; });
+    document.querySelectorAll('input[type=text], textarea').forEach(function(el){ if(el.id!=='customColor' && el.id!=='footCustom') el.value = el.defaultValue; });
     document.getElementById('zodiac').selectedIndex = 3;
+    document.getElementById('footMode').value = 'default';
+    document.getElementById('footCustom').style.display = 'none';
     currentTheme = {a:'#ff9d5c', b:'#ffd0a8'};
     document.getElementById('customColor').value = '#ff9d5c';
     avatarData = null; document.getElementById('avatarThumb').removeAttribute('src');
@@ -734,6 +761,13 @@ function setup(){
 
   // 头像默认缩略图
   document.getElementById('avatarThumb').style.background = 'linear-gradient(160deg,#ffd0a8,#ff9d5c)';
+
+  // Footer 模式切换：自定义时显示输入框
+  document.getElementById('footMode').addEventListener('change', function(){
+    const customInput = document.getElementById('footCustom');
+    customInput.style.display = this.value === 'custom' ? '' : 'none';
+    scheduleUpdate();
+  });
 
   preview.addEventListener('load', function(){ updatePreview(); });
   loadPreview();
