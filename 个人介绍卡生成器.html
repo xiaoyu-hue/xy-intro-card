@@ -450,8 +450,15 @@ const CARD_CSS = `
   @media (min-width:768px){ :root{ --card-w:440px; } .card{ padding:44px 34px 38px; border-radius:34px; } .avatar-wrap{ width:146px; height:146px; } }
 
   @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
-    .card-bg{ background:linear-gradient(160deg, rgba(30,28,40,0.93), rgba(14,13,20,0.96)); }
-    .skill{ background:rgba(255,255,255,0.10); }
+    .card-bg{ background:linear-gradient(160deg, rgba(30,28,40,0.95), rgba(14,13,20,0.97)); }
+    .skill{ background:rgba(255,255,255,0.08); }
+    /* 旧浏览器禁用粒子系统 */
+    .particles{ display: none !important; }
+    .blob{ opacity: 0.25; }
+  }
+  /* Phase 2: iOS < 15 特殊兼容 */
+  @supports (-webkit-touch-callout: none) {
+    .card-bg { -webkit-backdrop-filter: blur(20px) saturate(150%); }
   }
 
   .ripple-layer{ position:absolute; inset:0; z-index:6; border-radius:inherit; overflow:hidden; pointer-events:none; }
@@ -491,12 +498,30 @@ const INTERACT_JS = `
     card.addEventListener('mousemove',function(e){ var r=card.getBoundingClientRect(); tx=((e.clientX-r.left)/r.width)*100; ty=((e.clientY-r.top)/r.height)*100; start(); },{passive:true});
     card.addEventListener('mouseleave',function(){ tx=50;ty=0;start(); });
   }
+  // Phase 2: IntersectionObserver 入场动画
+  try {
+    if ('IntersectionObserver' in window && card) {
+      var observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+          if (entry.isIntersecting) {
+            entry.target.style.animationPlayState = 'running';
+            observer.disconnect();
+          }
+        });
+      }, { threshold: 0.1 });
+      observer.observe(card);
+    }
+  } catch(e) {}
   try{ if(window.innerWidth>480 && !('ontouchstart' in window)){ var g=document.createElement('div'); g.className='grain'; stage.appendChild(g); } }catch(e){}
   var small = (stage.clientWidth||window.innerWidth) <= 480;
   var cores = navigator.hardwareConcurrency||4; var weak = cores<=4;
   var count = small ? (weak?5:9) : (weak?12:20);
   var layer=document.createElement('div'); layer.className='particles'; stage.insertBefore(layer, stage.firstChild);
-  for(var i=0;i<count;i++){ var p=document.createElement('span'); p.className='particle'; var size=Math.random()*5+3; p.style.width=size+'px'; p.style.height=size+'px'; p.style.left=(Math.random()*100)+'%'; var dur=small?(Math.random()*10+15):(Math.random()*8+8); p.style.animationDuration=dur+'s'; p.style.animationDelay=(-Math.random()*20)+'s'; layer.appendChild(p); }
+  // Phase 2: requestIdleCallback 降级
+  var scheduleInit = window.requestIdleCallback || function(cb){ return setTimeout(cb, 100); };
+  scheduleInit(function(){
+    for(var i=0;i<count;i++){ var p=document.createElement('span'); p.className='particle'; var size=Math.random()*5+3; p.style.width=size+'px'; p.style.height=size+'px'; p.style.left=(Math.random()*100)+'%'; var dur=small?(Math.random()*10+15):(Math.random()*8+8); p.style.animationDuration=dur+'s'; p.style.animationDelay=(-Math.random()*20)+'s'; layer.appendChild(p); }
+  });
   var ripples=document.getElementById('ripples');
   if(ripples){ var downEv=('onpointerdown' in window)?'pointerdown':(('ontouchstart' in window)?'touchstart':'mousedown'); function point(e){ if(e.touches&&e.touches[0]) return {x:e.touches[0].clientX,y:e.touches[0].clientY}; if(e.clientX!==undefined) return {x:e.clientX,y:e.clientY}; return null; } card.addEventListener(downEv,function(e){ var p=point(e); if(!p||ripples.childElementCount>5) return; var r=card.getBoundingClientRect(); var size=Math.max(r.width,r.height)*0.9; var s=document.createElement('span'); s.className='ripple'; s.style.width=s.style.height=size+'px'; s.style.left=(p.x-r.left-size/2)+'px'; s.style.top=(p.y-r.top-size/2)+'px'; ripples.appendChild(s); setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); },950); },{passive:true}); }
   var frames=0,t0=0,aborted=false,judged=false;
