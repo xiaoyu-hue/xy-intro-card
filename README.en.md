@@ -36,6 +36,12 @@
 - **Avatar upload + auto-compress**: uploads are shrunk to 512px via `<canvas>`, so large images never freeze the UI.
 - **Live preview + one-click download**: fill on the left, see the phone preview on the right, export a standalone HTML card.
 - **Mobile-first + performance restraint**: multi-breakpoint, frame-rate auto-degrade, respects `prefers-reduced-motion`, fewer glass layers on mobile.
+- **Auto-save & restore**: localStorage persistence prevents data loss on page refresh.
+- **Keyboard accessible**: full Tab-key navigation with visible focus indicators.
+- **Accessibility compliant**: ARIA attributes, screen reader support, high contrast mode adaptation.
+- **Broad compatibility**: degraded gracefully on iOS < 15, old WebView, Edge Legacy.
+- **Foldable & ultra-wide screen support**: breakpoints for Surface Duo, tablets, and desktops >1400px.
+- **Extensible API**: `window.XYIntroCard` with template registration and theme addition hooks.
 
 ## 🌐 Try it online
 

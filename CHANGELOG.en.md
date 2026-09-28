@@ -13,6 +13,47 @@
 
 - Enabled GitHub Pages (source: `main` branch, root); live at <https://xiaoyu-hue.github.io/xy-intro-card/>
 
+---
+
+## [2.0.0-Phase3] - 2026-09-28
+
+### Added
+
+- **Phase 0 - Automated Test Gate**
+  - New `tests/logic.test.js` (31 test cases)
+  - New `scripts/build-check.sh` build check script
+  - New `.github/workflows/ci.yml` CI configuration
+  - New `Features` utility object (feature detection)
+
+- **Phase 1 - Robustness & Inclusivity**
+  - New localStorage persistence (prevents data loss on refresh)
+  - New input validation feedback (real-time error prompts)
+  - New `:focus-visible` visible focus indicator
+  - New high contrast mode adaptation (`forced-colors`)
+  - New ARIA attributes enhancement (`aria-pressed`, `aria-controls`, `aria-label`)
+  - New file type validation (images only)
+
+- **Phase 2 - Compatibility Fixes**
+  - Enhanced `backdrop-filter` degradation strategy (disables particle system on old browsers)
+  - New iOS < 15 special compatibility styles
+  - New `IntersectionObserver` entrance animation (triggers when viewport visible)
+  - New `requestIdleCallback` degradation (setTimeout fallback for old browsers)
+
+- **Phase 3 - Responsive & Extensibility**
+  - New foldable screen adaptation breakpoints (768-1100px portrait)
+  - New ultra-wide screen adaptation (>1400px centered layout)
+  - New container queries support (for iframe embedding scenarios)
+  - Replaced fixed font sizes with `clamp()` fluid typography
+  - Theme config externalized to `THEMES_CONFIG` JSON structure
+  - New template registry `registerTemplate()` API
+  - New global `window.XYIntroCard` API exposure
+
+### Changed
+
+- Documentation enhanced: updated `docs/TESTING.md`
+
+---
+
 ## [1.0.0] - 2026-09-27
 
 ### Added
