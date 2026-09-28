@@ -15,18 +15,42 @@
 
 ---
 
-## [2.0.0-Phase0] - 2026-09-28
+## [2.0.0-Phase3] - 2026-09-28
 
 ### 新增
 
-- **自动化测试门禁**：新增 `tests/logic.test.js`，覆盖 31 个测试用例（XSS 防护、空字段处理、超长输入、主题色注入、Footer 模式、模式隔离）
-- **构建检查脚本**：新增 `scripts/build-check.sh`，验证 HTML 结构、核心函数、CSP 策略、文档完整性
-- **GitHub Actions CI**：新增 `.github/workflows/ci.yml`，每次 push/PR 自动运行三层检查
-- **特性检测工具**：新增 `Features` 对象，统一检测浏览器 API 支持情况（backdrop-filter、容器查询、IntersectionObserver 等）
+- **Phase 0 - 自动化测试门禁**
+  - 新增 `tests/logic.test.js`（31 个测试用例）
+  - 新增 `scripts/build-check.sh` 构建检查脚本
+  - 新增 `.github/workflows/ci.yml` CI 配置
+  - 新增 `Features` 工具函数（特性检测）
+
+- **Phase 1 - 容错与包容性**
+  - 新增 localStorage 持久化（防止刷新丢失）
+  - 新增输入校验反馈（实时错误提示）
+  - 新增 `:focus-visible` 可见焦点指示器
+  - 新增高对比度模式适配（`forced-colors`）
+  - 新增 ARIA 属性增强（`aria-pressed`, `aria-controls`, `aria-label`）
+  - 新增文件类型校验（仅允许图片）
+
+- **Phase 2 - 兼容性修复**
+  - 增强 `backdrop-filter` 降级策略（旧浏览器禁用粒子系统）
+  - 新增 iOS < 15 特殊兼容样式
+  - 新增 `IntersectionObserver` 入场动画（延迟到视口可见时触发）
+  - 新增 `requestIdleCallback` 降级（旧浏览器用 setTimeout 替代）
+
+- **Phase 3 - 响应式与拓展性**
+  - 新增折叠屏适配断点（768-1100px 竖屏）
+  - 新增超宽屏适配（>1400px 居中布局）
+  - 新增容器查询支持（配合 iframe 内嵌场景）
+  - 改用 `clamp()` 流体排版替代部分固定字号
+  - 主题配置外置为 `THEMES_CONFIG` JSON 结构
+  - 新增模板注册表 `registerTemplate()` API
+  - 新增全局 `window.XYIntroCard` API 暴露
 
 ### 变更
 
-- 文档体系增强：更新 `docs/TESTING.md`，详细说明三层验证架构
+- 文档体系增强：更新 `docs/TESTING.md`
 
 ---
 
