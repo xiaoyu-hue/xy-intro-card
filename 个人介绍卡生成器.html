@@ -38,11 +38,18 @@
   .field{ margin-bottom:15px; }
   .field label{ display:block; font-size:13px; color:var(--dim); margin-bottom:6px; }
   .field .hint{ font-size:11px; color:#6f6b7e; margin-top:4px; }
+  /* Phase 1: 输入错误状态 */
+  .field .input-error{ border-color: #ff6b6b !important; }
+  .field .error-msg{ font-size:11px; color: #ff6b6b; margin-top:4px; display: none; }
+  .field.invalid .error-msg{ display: block; }
   input[type=text], textarea, select{
     width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
     background:var(--panel-2); color:var(--text); font-size:14px; font-family:inherit; outline:none;
   }
   input[type=text]:focus, textarea:focus, select:focus{ border-color:var(--accent); }
+  /* Phase 1: 可见焦点指示器（替代 outline:none） */
+  :focus-visible { outline: 2px solid var(--accent, #ff9d5c); outline-offset: 2px; }
+  @media (pointer: fine) { :focus:not(:focus-visible) { outline: none; } }
   textarea{ resize:vertical; min-height:54px; }
   .row{ display:flex; gap:10px; }
   .row > *{ flex:1; }
@@ -82,8 +89,8 @@
   <!-- ============ 表单 ============ -->
   <section class="panel">
     <div class="modebar">
-      <button id="modeOc" class="active" data-mode="oc">人设卡</button>
-      <button id="modeGeneral" data-mode="general">通用名片</button>
+      <button id="modeOc" class="active" data-mode="oc" aria-pressed="true" aria-controls="fieldsOc">人设卡</button>
+      <button id="modeGeneral" data-mode="general" aria-pressed="false" aria-controls="fieldsGeneral">通用名片</button>
     </div>
 
     <!-- 人设卡字段 -->
@@ -182,7 +189,7 @@
 
   <!-- ============ 预览 ============ -->
   <section class="panel preview">
-    <div class="phone"><iframe id="preview" sandbox="allow-scripts allow-same-origin"></iframe></div>
+    <div class="phone"><iframe id="preview" sandbox="allow-scripts allow-same-origin" title="卡片预览（实时显示您编辑的名片效果）" aria-label="卡片预览区域"></iframe></div>
     <div class="preview-tip">↑ 这是卡片在手机上的样子（实时更新）</div>
     <div class="actions">
       <button class="btn primary" id="download">下载这张卡片</button>
@@ -461,6 +468,13 @@ const CARD_CSS = `
   .lite .club-name::after{ animation-duration:9s; }
   .paused *{ animation-play-state:paused !important; }
   @media (prefers-reduced-motion: reduce){ *{ animation:none !important; } .reveal{ opacity:1; transform:none; } }
+  /* Phase 1: 高对比度模式适配 */
+  @media (forced-colors: active) {
+    .card-bg{ border: 2px solid ButtonText; background: Canvas !important; }
+    .skill{ border: 1px solid ButtonText; background: Canvas !important; }
+    .blob, .particles{ display: none !important; }
+    .club-name{ -webkit-text-fill-color: CanvasText; background: none; color: CanvasText; }
+  }
 `;
 
 /* ---------- 卡片交互（与导出共用） ---------- */
@@ -682,7 +696,69 @@ function updatePreview(){
   const card = doc.getElementById('card');
   if(card) card.innerHTML = buildCardInner(c, false);
 }
-function scheduleUpdate(){ clearTimeout(updateTimer); updateTimer = setTimeout(updatePreview, 220); }
+function scheduleUpdate(){ clearTimeout(updateTimer); updateTimer = setTimeout(function(){ updatePreview(); saveState(); }, 220); }
+
+/* ============================================================
+   SECTION 6.5: 本地持久化（Phase 1）
+   职责：自动保存/恢复表单状态，防止刷新丢失
+   ============================================================ */
+var STORAGE_KEY = 'xy-intro-card-state-v1';
+
+function saveState() {
+  try {
+    var state = {
+      mode: currentMode,
+      theme: currentTheme,
+      fields: {}
+    };
+    document.querySelectorAll('input, textarea, select').forEach(function(el) {
+      if (el.id) state.fields[el.id] = el.value;
+    });
+    // 头像不保存（dataURL 太大）
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch(e) { /* quota exceeded，静默处理 */ }
+}
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    var state = JSON.parse(raw);
+    // 恢复模式
+    if (state.mode) setMode(state.mode);
+    // 恢复主题
+    if (state.theme) {
+      currentTheme = state.theme;
+      document.getElementById('customColor').value = state.theme.a;
+    }
+    // 恢复字段
+    if (state.fields) {
+      Object.keys(state.fields).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = state.fields[id];
+      });
+    }
+    return true;
+  } catch(e) { return false; }
+}
+
+/* ============================================================
+   SECTION 6.6: 输入校验反馈（Phase 1）
+   职责：实时验证输入，显示错误提示
+   ============================================================ */
+function addInputFeedback(el, validator, errorMsg) {
+  el.addEventListener('input', function() {
+    var valid = validator(this.value);
+    this.classList.toggle('input-error', !valid);
+    var field = this.closest('.field');
+    if (field) field.classList.toggle('invalid', !valid);
+    var hint = this.parentElement.querySelector('.hint');
+    if (hint) {
+      hint.textContent = valid ? '' : (errorMsg || '输入无效');
+      hint.style.color = valid ? '' : '#ff6b6b';
+    }
+  });
+}
 
 function setMode(mode){
   currentMode = mode;
@@ -717,6 +793,9 @@ function buildThemeSwatches(){
    职责：初始化所有 UI 交互，启动应用
    ============================================================ */
 function setup(){
+  // 恢复本地状态
+  var restored = loadState();
+
   // 星座下拉
   const z = document.getElementById('zodiac');
   Object.keys(ZODIAC).forEach(function(k){ const o=document.createElement('option'); o.value=k; o.textContent=k; if(k==='巨蟹座')o.selected=true; z.appendChild(o); });
@@ -726,12 +805,24 @@ function setup(){
   // 模式切换
   document.getElementById('modeOc').addEventListener('click', function(){ setMode('oc'); });
   document.getElementById('modeGeneral').addEventListener('click', function(){ setMode('general'); });
+  // Phase 1: 更新 ARIA 状态
+  var origSetMode = setMode;
+  setMode = function(mode) {
+    origSetMode(mode);
+    document.getElementById('modeOc').setAttribute('aria-pressed', mode==='oc'?'true':'false');
+    document.getElementById('modeGeneral').setAttribute('aria-pressed', mode==='general'?'true':'false');
+  };
 
   // 文本输入
   document.querySelectorAll('input[type=text], textarea, select').forEach(function(el){
     el.addEventListener('input', scheduleUpdate);
     el.addEventListener('change', scheduleUpdate);
   });
+
+  // Phase 1: 输入校验反馈
+  addInputFeedback(document.getElementById('clubName'), function(v){ return v.trim().length > 0 && v.length <= 50; }, '俱乐部名称不能为空（最多50字符）');
+  addInputFeedback(document.getElementById('name'), function(v){ return v.trim().length > 0; }, '名字不能为空');
+  addInputFeedback(document.getElementById('fullName'), function(v){ return v.trim().length > 0; }, '姓名不能为空');
 
   // 自定义颜色
   document.getElementById('customColor').addEventListener('input', function(e){
@@ -745,6 +836,12 @@ function setup(){
   document.getElementById('avatarBtn').addEventListener('click', function(){ fileInput.click(); });
   fileInput.addEventListener('change', function(e){
     const f = e.target.files && e.target.files[0]; if(!f) return;
+    // Phase 1: 文件类型校验
+    if (!f.type.startsWith('image/')) {
+      alert('请选择图片文件');
+      fileInput.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = function(ev){
       const dataURL = ev.target.result;
@@ -810,7 +907,7 @@ function setup(){
 
   // 启动预览
   preview.addEventListener('load', function(){ updatePreview(); });
-  loadPreview();
+  if (!restored) loadPreview();
 }
 
 // 启动应用
