@@ -587,7 +587,7 @@ function buildDoc(c, opts){
   const sub = c.mode==='oc' ? (c.name||'') : (c.script||'');
   const fav = favicon(c,a,b);
   const rootVars = ":root{--amber:"+a+";--amber-2:"+b+";--amber-rgb:"+hexToRgb(a).join(',')+";--amber-2-rgb:"+hexToRgb(b).join(',')+";--blob1:"+blobs[0]+";--blob2:"+blobs[1]+";--blob3:"+blobs[2]+";}";
-  const foot = "<div class='foot'>© "+esc(titleText)+" · "+esc(sub)+"</div>";
+  const foot = "<div class='foot'>© "+esc(c.title)+" · "+esc(sub)+"</div>";
   return "<!DOCTYPE html>\n<html lang='zh-CN'>\n<head>\n<meta charset='UTF-8'>\n"+
     "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>\n"+
     "<meta name='theme-color' content='#06060b'>\n"+
