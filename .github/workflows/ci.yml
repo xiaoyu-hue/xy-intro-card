@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          # 单文件项目无 package.json，不启用 npm 缓存
 
       - name: 运行测试
         run: node tests/logic.test.js
