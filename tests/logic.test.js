@@ -36,8 +36,8 @@ if (!scriptMatch) {
 
 let jsCode = scriptMatch[1];
 
-// 移除 setup() 调用（测试环境不需要 UI 初始化）
-jsCode = jsCode.replace(/setup\(\);\s*$/, '');
+// 移除所有 setup() 调用（测试环境不需要 UI 初始化）
+jsCode = jsCode.replace(/setup\(\);/g, '');
 
 // 桩环境
 const stubEnvironment = `

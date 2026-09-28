@@ -448,6 +448,23 @@ const CARD_CSS = `
   @media (max-width:320px){ .card{ padding:22px 12px 20px; border-radius:20px; } .avatar-wrap{ width:92px; height:92px; } .label{ padding:4px 10px; margin:16px 0 9px; } .skills{ margin:0 -3px; } .skill{ margin:0 3px 8px; padding:8px 11px; } .divider{ margin:14px auto; } }
   @media (orientation:landscape) and (max-height:560px){ .stage{ padding:12px 16px; } .card{ padding:20px 26px; border-radius:22px; max-width:540px; } .avatar-wrap{ width:76px; height:76px; margin-bottom:12px; } .divider{ margin:12px auto; } .label{ margin:12px 0 8px; } .skills{ margin:0 -4px; } .skill{ margin:0 4px 8px; padding:7px 13px; } .sign{ margin-top:16px; } .foot{ margin-top:12px; } }
   @media (min-width:768px){ :root{ --card-w:440px; } .card{ padding:44px 34px 38px; border-radius:34px; } .avatar-wrap{ width:146px; height:146px; } }
+  /* Phase 3: 折叠屏适配 */
+  @media (min-width:768px) and (max-width:1100px) and (orientation:portrait){
+    :root{ --card-w:360px; }
+  }
+  /* Phase 3: 超宽屏适配 */
+  @media (min-width:1400px){
+    .wrap{ justify-content: center; }
+    .panel.preview{ max-width: 500px; }
+  }
+  /* Phase 3: 容器查询（配合 iframe 内嵌场景） */
+  @container (max-width: 480px) {
+    .card { padding: 28px 20px; }
+    .avatar-wrap { width: 112px; height: 112px; }
+  }
+  @container (max-width: 360px) {
+    .card { padding: 24px 16px; }
+  }
 
   @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
     .card-bg{ background:linear-gradient(160deg, rgba(30,28,40,0.95), rgba(14,13,20,0.97)); }
@@ -563,12 +580,21 @@ var Features = {
    职责：定义星座映射、主题色板、UI 文案
    ============================================================ */
 const ZODIAC = {'白羊座':'♈','金牛座':'♉','双子座':'♊','巨蟹座':'♋','狮子座':'♌','处女座':'♍','天秤座':'♎','天蝎座':'♏','射手座':'♐','摩羯座':'♑','水瓶座':'♒','双鱼座':'♓'};
-const THEMES = [
-  {name:'落日金', a:'#ff9d5c', b:'#ffd0a8'},
-  {name:'深海蓝', a:'#6aa8ff', b:'#bcd8ff'},
-  {name:'极光紫', a:'#b06bff', b:'#d9b6ff'},
-  {name:'晨雾白', a:'#cfd3e6', b:'#ffffff'}
-];
+
+/* Phase 3: 主题配置外置（JSON 结构，便于未来从 CDN 加载） */
+const THEMES_CONFIG = {
+  sunset: { name:'落日金', a:'#ff9d5c', b:'#ffd0a8' },
+  ocean:  { name:'深海蓝', a:'#6aa8ff', b:'#bcd8ff' },
+  aurora: { name:'极光紫', a:'#b06bff', b:'#d9b6ff' },
+  mist:   { name:'晨雾白', a:'#cfd3e6', b:'#ffffff' }
+};
+const THEMES = Object.values(THEMES_CONFIG);
+
+/* Phase 3: 模板注册表（扩展点） */
+var CARD_TEMPLATES = {};
+function registerTemplate(name, config) {
+  CARD_TEMPLATES[name] = config;
+}
 
 /* ============================================================
    SECTION 3: 状态管理（应用运行时可变状态）
@@ -937,6 +963,21 @@ function setup(){
 
 // 启动应用
 setup();
+
+/* ============================================================
+   SECTION 8: 全局 API（Phase 3 - 插件钩子）
+   职责：暴露可扩展接口，供未来插件或自定义模板使用
+   ============================================================ */
+window.XYIntroCard = {
+  registerTemplate: registerTemplate,
+  addTheme: function(name, a, b) {
+    THEMES_CONFIG[name] = { name: name, a: a, b: b };
+    THEMES.push(THEMES_CONFIG[name]);
+  },
+  onCardExport: [],
+  version: '2.0.0-Phase3',
+  FEATURES: Features
+};
 </script>
 </body>
 </html>
