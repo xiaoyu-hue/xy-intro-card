@@ -515,19 +515,19 @@ function themeInfo(){
 function readCfg(){
   const c = { mode:currentMode, theme:currentTheme, avatar:avatarData };
   if(currentMode==='oc'){
-    c.title = val('clubName')||'俱乐部名';
-    c.script = val('tagline');
-    c.name = val('name')||'名字';
-    c.age = val('age');
+    c.title = (val('clubName')||'俱乐部名').trim().slice(0,50);
+    c.script = (val('tagline')||'').trim().slice(0,100);
+    c.name = (val('name')||'名字').trim().slice(0,30);
+    c.age = val('age').trim();
     c.zodiac = val('zodiac');
-    c.skills = splitCsv(val('skills'));
-    c.signCn = val('signCn'); c.signEn = val('signEn');
+    c.skills = splitCsv(val('skills')).slice(0,8).map(s=>s.slice(0,30));
+    c.signCn = (val('signCn')||'').trim().slice(0,50); c.signEn = (val('signEn')||'').trim().slice(0,50);
   } else {
-    c.title = val('fullName')||'姓名';
-    c.script = val('titleRole');
-    c.bio = val('bio');
-    c.contact = splitCsv(val('contact'));
-    c.signCn = val('signCn'); c.signEn = val('signEn');
+    c.title = (val('fullName')||'姓名').trim().slice(0,50);
+    c.script = (val('titleRole')||'').trim().slice(0,80);
+    c.bio = (val('bio')||'').trim().slice(0,200);
+    c.contact = splitCsv(val('contact')).slice(0,5).map(s=>s.slice(0,50));
+    c.signCn = (val('signCn')||'').trim().slice(0,50); c.signEn = (val('signEn')||'').trim().slice(0,50);
   }
   return c;
 }
@@ -590,7 +590,9 @@ function buildDoc(c, opts){
   const foot = "<div class='foot'>© "+esc(titleText)+" · "+esc(sub)+"</div>";
   return "<!DOCTYPE html>\n<html lang='zh-CN'>\n<head>\n<meta charset='UTF-8'>\n"+
     "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>\n"+
-    "<meta name='theme-color' content='#06060b'>\n<title>"+esc(titleText)+"</title>\n"+
+    "<meta name='theme-color' content='#06060b'>\n"+
+    "<meta http-equiv='Content-Security-Policy' content=\"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-ancestors 'none'\">"+
+    "<title>"+esc(titleText)+"</title>\n"+
     "<link rel='icon' href='"+fav+"'>\n<style>\n"+rootVars+"\n"+CARD_CSS+"\n</style>\n</head>\n<body>\n"+
     "<div class='stage' id='stage'>\n  <div class='blob b1'></div>\n  <div class='blob b2'></div>\n  <div class='blob b3'></div>\n"+
     "  <main class='card' id='card'>\n"+inner+"  </main>\n</div>\n"+foot+"\n"+
