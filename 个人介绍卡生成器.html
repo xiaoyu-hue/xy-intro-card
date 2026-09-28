@@ -492,7 +492,10 @@ const INTERACT_JS = `
 })();
 `;
 
-/* ---------- 工具函数 ---------- */
+/* ============================================================
+   SECTION 1: 工具函数（纯函数，无 DOM 依赖）
+   职责：字符串处理、颜色转换、数据清洗
+   ============================================================ */
 function esc(s){ s = (s==null?'':String(s)); return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function splitCsv(s){ return (s||'').split(/[，,、\n]+/).map(function(x){return x.trim();}).filter(Boolean); }
 function hexToRgb(h){ h=h.replace('#',''); if(h.length===3) h=h.split('').map(function(x){return x+x;}).join(''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
@@ -502,6 +505,10 @@ function hslToRgb(h,s,l){ h=((h%360)+360)%360/360; s/=100; l/=100; var r,g,b; if
 function lighten(hex){ var c=hexToRgb(hex); var m=function(x){return Math.round(x*0.55+255*0.45);}; return rgbToHex(m(c[0]),m(c[1]),m(c[2])); }
 function getHue(hex){ var c=hexToRgb(hex); return rgbToHsl(c[0],c[1],c[2])[0]; }
 
+/* ============================================================
+   SECTION 2: 常量配置（不可变数据）
+   职责：定义星座映射、主题色板、UI 文案
+   ============================================================ */
 const ZODIAC = {'白羊座':'♈','金牛座':'♉','双子座':'♊','巨蟹座':'♋','狮子座':'♌','处女座':'♍','天秤座':'♎','天蝎座':'♏','射手座':'♐','摩羯座':'♑','水瓶座':'♒','双鱼座':'♓'};
 const THEMES = [
   {name:'落日金', a:'#ff9d5c', b:'#ffd0a8'},
@@ -510,10 +517,18 @@ const THEMES = [
   {name:'晨雾白', a:'#cfd3e6', b:'#ffffff'}
 ];
 
+/* ============================================================
+   SECTION 3: 状态管理（应用运行时可变状态）
+   职责：维护当前模式、主题、头像数据
+   ============================================================ */
 let currentMode = 'oc';
 let currentTheme = {a:'#ff9d5c', b:'#ffd0a8'};
 let avatarData = null;
 
+/* ============================================================
+   SECTION 5: 渲染逻辑（纯函数，无副作用）
+   职责：主题色计算、卡片 DOM 生成、导出 HTML 组装
+   ============================================================ */
 function themeInfo(){
   const a = currentTheme.a, b = currentTheme.b, h = getHue(a);
   const blobs = [
@@ -524,6 +539,10 @@ function themeInfo(){
   return {a:a, b:b, blobs:blobs};
 }
 
+/* ============================================================
+   SECTION 4: 配置读取（从 DOM 读取用户输入）
+   职责：采集表单数据，清洗校验，返回配置对象
+   ============================================================ */
 function readCfg(){
   const c = { mode:currentMode, theme:currentTheme, avatar:avatarData };
   if(currentMode==='oc'){
@@ -624,7 +643,10 @@ function buildDoc(c, opts){
     "<script>"+INTERACT_JS+"<\/script>\n</body>\n</html>";
 }
 
-/* ---------- 预览与交互 ---------- */
+/* ============================================================
+   SECTION 6: 预览更新（UI 状态同步）
+   职责：加载预览、更新主题色、调度防抖更新
+   ============================================================ */
 const preview = document.getElementById('preview');
 let updateTimer = null;
 
@@ -677,6 +699,10 @@ function buildThemeSwatches(){
   });
 }
 
+/* ============================================================
+   SECTION 7: 交互绑定（DOM 事件注册）
+   职责：初始化所有 UI 交互，启动应用
+   ============================================================ */
 function setup(){
   // 星座下拉
   const z = document.getElementById('zodiac');
@@ -701,7 +727,7 @@ function setup(){
     scheduleUpdate();
   });
 
-  // 头像
+  // 头像上传
   const fileInput = document.getElementById('avatar');
   document.getElementById('avatarBtn').addEventListener('click', function(){ fileInput.click(); });
   fileInput.addEventListener('change', function(e){
@@ -732,7 +758,7 @@ function setup(){
   });
   document.getElementById('avatarClear').addEventListener('click', function(){ avatarData=null; fileInput.value=''; document.getElementById('avatarThumb').removeAttribute('src'); scheduleUpdate(); });
 
-  // 下载
+  // 下载卡片
   document.getElementById('download').addEventListener('click', function(){
     const c = readCfg();
     const html = buildDoc(c, {animate:true});
@@ -745,7 +771,14 @@ function setup(){
     setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
   });
 
-  // 重置
+  // Footer 模式切换：自定义时显示输入框
+  document.getElementById('footMode').addEventListener('change', function(){
+    const customInput = document.getElementById('footCustom');
+    customInput.style.display = this.value === 'custom' ? '' : 'none';
+    scheduleUpdate();
+  });
+
+  // 重置按钮
   document.getElementById('reset').addEventListener('click', function(){
     document.querySelectorAll('input[type=text], textarea').forEach(function(el){ if(el.id!=='customColor' && el.id!=='footCustom') el.value = el.defaultValue; });
     document.getElementById('zodiac').selectedIndex = 3;
@@ -762,17 +795,12 @@ function setup(){
   // 头像默认缩略图
   document.getElementById('avatarThumb').style.background = 'linear-gradient(160deg,#ffd0a8,#ff9d5c)';
 
-  // Footer 模式切换：自定义时显示输入框
-  document.getElementById('footMode').addEventListener('change', function(){
-    const customInput = document.getElementById('footCustom');
-    customInput.style.display = this.value === 'custom' ? '' : 'none';
-    scheduleUpdate();
-  });
-
+  // 启动预览
   preview.addEventListener('load', function(){ updatePreview(); });
   loadPreview();
 }
 
+// 启动应用
 setup();
 </script>
 </body>
