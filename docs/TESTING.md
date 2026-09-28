@@ -1,42 +1,105 @@
-# 验证方式（TESTING）
+# 测试文档（TESTING）
 
-> 本项目是纯前端单文件，**没有自动化测试门禁**。验证以「浏览器手测 + 无头截图 + Node 逻辑校验」三层组成。
+> 本项目采用 **三层验证体系**：Node 逻辑校验 + 构建门禁 + GitHub Actions CI。
 
-## 1. 分层
+## 1. 分层架构
 
 | 层 | 方法 | 依赖 | 说明 |
 |---|---|---|---|
-| 逻辑校验 | Node 提取 `<script>` + DOM 桩，跑 `buildDoc` | Node 18+ | 验证导出 HTML 结构 / 字段 / 主题注入 |
-| 视觉校验 | 无头 Chromium 截图 | chromium | 验证生成器页面与导出卡渲染 |
-| 手测 | 人工浏览器操作 | 浏览器 | 验证交互、上传、下载等端到端体验 |
+| 逻辑校验 | Node 提取 `<script>` + DOM 桩，跑 `buildDoc` | Node 18+ | 验证导出 HTML 结构 / 字段 / 主题注入 / XSS 防护 |
+| 构建检查 | `scripts/build-check.sh` | grep, wc | 验证文件完整性、HTML 结构、CSP 安全策略 |
+| CI 门禁 | `.github/workflows/ci.yml` | GitHub Actions | 每次 push/PR 自动运行上述两层 |
 
-## 2. 逻辑校验（推荐 CI / 提交前）
+## 2. 逻辑测试（tests/logic.test.js）
 
-提取生成器内嵌脚本，以 DOM 桩替代 `document` / `window`，直接调用 `buildDoc(cfg)`：
-
-```js
-const fs = require("fs");
-const html = fs.readFileSync("个人介绍卡生成器.html", "utf8");
-let js = html.match(/<script>([\s\S]*?)<\/script>/)[1].replace(/setup\(\);\s*$/, "");
-const stub = "var document={getElementById:()=>null,querySelectorAll:()=>[],addEventListener:()=>{},createElement:()=>({style:{},classList:{toggle(){},add(){},remove(){}},addEventListener(){},appendChild(){},click(){},remove(){},setAttribute(){},removeAttribute(){}}),body:{appendChild(){}}},window={matchMedia:()=>({matches:false}),innerWidth:800,addEventListener:()=>{}};\n";
-js = stub + js + "\nmodule.exports={buildDoc};\n";
-fs.writeFileSync("/tmp/gen.js", js);
-const g = require("/tmp/gen.js");
-const doc = g.buildDoc({ mode:"oc", title:"XY俱乐部", name:"小鱼", age:"21", zodiac:"巨蟹座", skills:["文字陪聊"], signCn:"", signEn:"" }, { animate:false });
-console.assert(doc.includes("<!DOCTYPE html>") && doc.includes("小鱼"));
-```
-
-## 3. 视觉校验
-
+运行方式：
 ```bash
-# 导出卡截图
-chromium --headless --no-sandbox --disable-gpu --force-device-scale-factor=2 \
-  --window-size=430,960 --screenshot=card.png --virtual-time-budget=3000 \
-  "file:///workspace/XY俱乐部-小鱼.html"
+node tests/logic.test.js
 ```
 
-## 4. 回归清单（每次改动后人工核对）
+### 测试覆盖（31 个用例）
 
+#### 测试 1: XSS 防护（6 项）
+- script 标签应被转义为 `&lt;script&gt;`
+- img 标签应被转义为 `&lt;img`
+- 引号应被转义为 `&quot;`
+- alert 文本应保留（作为纯文本）
+- 正常文本应保留
+- 正常文本应保留（第二组）
+
+#### 测试 2: 空字段处理（3 项）
+- 空字段不崩溃，输出有效 HTML
+- 应包含 DOCTYPE
+- 应包含 html 标签
+
+#### 测试 3: 超长输入截断（2 项）
+- 输出长度应在合理范围内（<50KB）
+- 长文本应被保留（或截断）
+
+#### 测试 4: 主题色注入（8 项）
+- 落日金：--amber 和 --amber-2 正确注入
+- 深海蓝：--amber 和 --amber-2 正确注入
+- 极光紫：--amber 和 --amber-2 正确注入
+- 晨雾白：--amber 和 --amber-2 正确注入
+
+#### 测试 5: Footer 模式（4 项）
+- default 模式应包含 ©
+- produce 模式应包含「出品」
+- custom 模式应包含自定义文案
+- hidden 模式不应显示 footer
+
+#### 测试 6: 两种模式字段隔离（8 项）
+- oc 模式不应有"关于我"标签
+- oc 模式不应有"联系方式"标签
+- oc 模式应有"个人信息"标签
+- oc 模式应有"游戏技能"标签
+- general 模式不应显示年龄
+- general 模式不应显示星座
+- general 模式应有"关于我"标签
+- general 模式应有"联系方式"标签
+
+## 3. 构建检查（scripts/build-check.sh）
+
+运行方式：
+```bash
+sh scripts/build-check.sh
+```
+
+### 检查项
+- 主文件存在
+- 包含 DOCTYPE
+- 包含 html 标签和 lang 属性
+- 包含 buildDoc 函数
+- 包含 esc 转义函数
+- 包含 CSP 安全策略
+- 文件大小合理（<100KB）
+- docs 目录完整性（ARCHITECTURE.md、PRD.md、FIELDS.md）
+
+## 4. CI 配置（.github/workflows/ci.yml）
+
+触发条件：push 到 main、pull_request 到 main
+
+Jobs：
+1. **check**: 运行构建检查脚本
+2. **test**: 运行逻辑测试（需要 Node.js 20）
+3. **lint**: 基础 lint 检查
+   - HTML 结构完整性
+   - 无硬编码密码
+   - 无外部 CDN 依赖
+
+## 5. 本地开发工作流
+
+### 提交前检查
+```bash
+# 运行完整检查
+sh scripts/build-check.sh
+
+# 或单独运行
+node tests/logic.test.js
+sh scripts/build-check.sh
+```
+
+### 回归测试清单（每次改动后人工核对）
 - [ ] 两种模式切换，字段正确显示 / 隐藏
 - [ ] 四种主题色注入正确（含光斑、文字深浅）
 - [ ] 上传 2400×2400 大图：预览不卡死，导出卡约 10KB
@@ -44,8 +107,9 @@ chromium --headless --no-sandbox --disable-gpu --force-device-scale-factor=2 \
 - [ ] 导出卡独立打开，视觉与预览一致
 - [ ] 移动端视口（375 / 390）不溢出
 
-## 5. 纪律约定
+## 6. 纪律约定
 
 - 改动导出逻辑（`buildDoc` / `CARD_CSS`）必须重跑 §2 逻辑校验。
 - 改动视觉（CSS / 动画）必须补 §3 截图对比。
 - 文档与代码是否仍对齐，由 [`DOC_SYNC.md`](DOC_SYNC.md) 约束。
+- 新增测试用例请遵循现有命名规范：`测试 N: 描述`。

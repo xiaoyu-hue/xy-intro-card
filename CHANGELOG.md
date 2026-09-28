@@ -13,6 +13,23 @@
 
 - 启用 GitHub Pages（源：`main` 分支根目录），在线体验地址：<https://xiaoyu-hue.github.io/xy-intro-card/>
 
+---
+
+## [2.0.0-Phase0] - 2026-09-28
+
+### 新增
+
+- **自动化测试门禁**：新增 `tests/logic.test.js`，覆盖 31 个测试用例（XSS 防护、空字段处理、超长输入、主题色注入、Footer 模式、模式隔离）
+- **构建检查脚本**：新增 `scripts/build-check.sh`，验证 HTML 结构、核心函数、CSP 策略、文档完整性
+- **GitHub Actions CI**：新增 `.github/workflows/ci.yml`，每次 push/PR 自动运行三层检查
+- **特性检测工具**：新增 `Features` 对象，统一检测浏览器 API 支持情况（backdrop-filter、容器查询、IntersectionObserver 等）
+
+### 变更
+
+- 文档体系增强：更新 `docs/TESTING.md`，详细说明三层验证架构
+
+---
+
 ## [1.0.0] - 2026-09-27
 
 ### 新增

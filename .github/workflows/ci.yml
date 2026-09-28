@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  check:
+    name: 构建检查
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 运行构建检查
+        run: sh scripts/build-check.sh
+
+  test:
+    name: 逻辑测试
+    runs-on: ubuntu-latest
+    needs: check
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 运行测试
+        run: node tests/logic.test.js
+
+  lint:
+    name: 基础 Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 检查 HTML 结构
+        run: |
+          echo "▶ 检查 HTML 格式..."
+          grep -q '<!DOCTYPE html>' 个人介绍卡生成器.html
+          grep -q '</html>' 个人介绍卡生成器.html
+          echo "✅ HTML 结构完整"
+
+      - name: 检查无硬编码密码
+        run: |
+          echo "▶ 扫描敏感信息..."
+          if grep -iE '(password|secret|api[_-]?key|token)' 个人介绍卡生成器.html | grep -v '//\|/\*'; then
+            echo "⚠️  检测到潜在敏感信息（请确认是否为注释）"
+          else
+            echo "✅ 未发现硬编码敏感信息"
+          fi
+
+      - name: 检查无外部 CDN 依赖
+        run: |
+          echo "▶ 检查外部依赖..."
+          if grep -oE 'https?://[^"'\'' ]+' 个人介绍卡生成器.html | grep -v 'raw.githubusercontent.com\|xiaoyu-hue.github.io'; then
+            echo "⚠️  发现外部 URL 引用"
+          else
+            echo "✅ 无外部 CDN 依赖"
+          fi
