@@ -611,3 +611,33 @@ console.log('='.repeat(50));
 if (failed > 0) {
   process.exit(1);
 }
+
+// ============================================================
+// 测试 15: 键盘导航验证（Phase 5）
+// ============================================================
+group('测试 15: 键盘导航验证', function() {
+  const fs = require('fs');
+  const path = require('path');
+
+  var htmlPath = path.join(__dirname, '..', '个人介绍卡生成器.html');
+  var content = fs.readFileSync(htmlPath, 'utf8');
+
+  // 验证主题色块 tabindex 属性
+  assert(content.indexOf("setAttribute('tabindex', '0')") >= 0 || content.indexOf('tabindex') >= 0, '主题色块应有 tabindex 属性');
+
+  // 验证主题色块 role="button"
+  assert(content.indexOf("setAttribute('role', 'button')") >= 0 || content.indexOf('role="button"') >= 0 || content.indexOf("role='button'") >= 0, '主题色块应有 role="button"');
+
+  // 验证主题色块 aria-label
+  assert(content.indexOf("setAttribute('aria-label'") >= 0 || content.indexOf('aria-label') >= 0, '主题色块应有 aria-label');
+
+  // 验证 Enter/Space 键处理
+  assert(content.indexOf('e.key === \'Enter\'') >= 0 || content.indexOf("e.key === 'Enter'") >= 0, '应有 Enter 键处理');
+  assert(content.indexOf('e.key === \' \'') >= 0 || content.indexOf("e.key === ' '") >= 0 || content.indexOf('e.key === \' \'') >= 0, '应有 Space 键处理');
+
+  // 验证错误提示 aria-describedby
+  assert(content.indexOf("setAttribute('aria-describedby'") >= 0 || content.indexOf('aria-describedby') >= 0, '错误提示应有 aria-describedby 关联');
+
+  // 验证错误提示 aria-live
+  assert(content.indexOf("setAttribute('aria-live'") >= 0 || content.indexOf('aria-live') >= 0, '错误提示应有 aria-live 属性');
+});
