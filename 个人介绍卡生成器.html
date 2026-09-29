@@ -102,7 +102,8 @@
 
 <div class="wrap">
   <!-- ============ 表单 ============ -->
-  <section class="panel">
+  <section class="panel" role="region" aria-labelledby="form-title">
+    <span id="form-title" class="sr-only">个人介绍卡生成器表单</span>
     <div class="modebar" role="tablist" aria-label="卡片模式选择">
       <button id="modeOc" class="active" data-mode="oc" aria-pressed="true" aria-controls="fieldsOc" role="tab">人设卡</button>
       <button id="modeGeneral" data-mode="general" aria-pressed="false" aria-controls="fieldsGeneral" role="tab">通用名片</button>
@@ -212,7 +213,8 @@
   </section>
 
   <!-- ============ 预览 ============ -->
-  <section class="panel preview">
+  <section class="panel preview" role="region" aria-labelledby="preview-title">
+    <span id="preview-title" class="sr-only">卡片预览区域</span>
     <div class="phone"><iframe id="preview" sandbox="allow-scripts allow-same-origin" title="卡片预览（实时显示您编辑的名片效果）" aria-label="卡片预览区域" role="img" aria-live="polite"></iframe></div>
     <div class="preview-tip">↑ 这是卡片在手机上的样子（实时更新）</div>
     <div class="actions">
