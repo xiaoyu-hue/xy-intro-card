@@ -989,6 +989,7 @@ function buildThemeSwatches(){
       container.appendChild(lbl);
     }
     themes.forEach(function(t){
+      const s = document.createElement('div');
       const key = t.key || t.a.toLowerCase(); // 用 key 或色值作为唯一标识
       s.className = 'swatch' + (key === (AppState.theme.key || AppState.theme.a.toLowerCase()) ? ' active':'');
       s.style.background = 'linear-gradient(160deg,'+t.b+','+t.a+')';
