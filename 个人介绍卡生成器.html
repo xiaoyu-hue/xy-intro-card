@@ -1075,7 +1075,7 @@ function initFormFields(){
 }
 
 /* ---------- 子函数 B: 事件绑定 ---------- */
-function bindEvents(){
+function bindModeEvents(){
   // 模式切换
   document.getElementById('modeOc').addEventListener('click', function(){ setMode('oc'); });
   document.getElementById('modeGeneral').addEventListener('click', function(){ setMode('general'); });
@@ -1092,7 +1092,9 @@ function bindEvents(){
       document.getElementById('fieldsGeneral').focus();
     }
   };
+}
 
+function bindFormEvents(){
   // 文本输入
   document.querySelectorAll('input[type=text], textarea, select').forEach(function(el){
     el.addEventListener('input', scheduleUpdate);
@@ -1103,21 +1105,27 @@ function bindEvents(){
   addInputFeedback(document.getElementById('clubName'), function(v){ return v.trim().length > 0 && v.length <= 50; }, '俱乐部名称不能为空（最多50字符）');
   addInputFeedback(document.getElementById('name'), function(v){ return v.trim().length > 0; }, '名字不能为空');
   addInputFeedback(document.getElementById('fullName'), function(v){ return v.trim().length > 0; }, '姓名不能为空');
+}
 
+function bindCustomColorEvents(){
   // 自定义颜色
   document.getElementById('customColor').addEventListener('input', function(e){
     AppState.theme = {a:e.target.value, b:lighten(e.target.value), mode: AppState.theme.mode || 'dark'};
     document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
     scheduleUpdate();
   });
+}
 
+function bindIndustryPresetEvents(){
   // Phase 4: 行业预设按钮绑定
   document.querySelectorAll('#industryRow .btn').forEach(function(btn){
     btn.addEventListener('click', function(){
       applyIndustryPreset(btn.getAttribute('data-industry'));
     });
   });
+}
 
+function bindAvatarEvents(){
   // 头像上传
   const fileInput = document.getElementById('avatar');
   document.getElementById('avatarBtn').addEventListener('click', function(){ fileInput.click(); });
@@ -1154,7 +1162,9 @@ function bindEvents(){
     reader.readAsDataURL(f);
   });
   document.getElementById('avatarClear').addEventListener('click', function(){ AppState.avatar=null; fileInput.value=''; document.getElementById('avatarThumb').removeAttribute('src'); scheduleUpdate(); });
+}
 
+function bindDownloadEvents(){
   // 下载卡片
   document.getElementById('download').addEventListener('click', function(){
     const c = readCfg();
@@ -1167,14 +1177,18 @@ function bindEvents(){
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
   });
+}
 
+function bindFooterEvents(){
   // Footer 模式切换：自定义时显示输入框
   document.getElementById('footMode').addEventListener('change', function(){
     const customInput = document.getElementById('footCustom');
     customInput.style.display = this.value === 'custom' ? '' : 'none';
     scheduleUpdate();
   });
+}
 
+function bindResetEvents(){
   // 重置按钮
   document.getElementById('reset').addEventListener('click', function(){
     document.querySelectorAll('input[type=text], textarea').forEach(function(el){ if(el.id!=='customColor' && el.id!=='footCustom') el.value = el.defaultValue; });
@@ -1188,9 +1202,17 @@ function bindEvents(){
     setMode('oc');
     loadPreview();
   });
+}
 
-  // 头像默认缩略图
-  document.getElementById('avatarThumb').style.background = 'linear-gradient(160deg,#ffd0a8,#ff9d5c)';
+function bindEvents(){
+  bindModeEvents();
+  bindFormEvents();
+  bindCustomColorEvents();
+  bindIndustryPresetEvents();
+  bindAvatarEvents();
+  bindDownloadEvents();
+  bindFooterEvents();
+  bindResetEvents();
 }
 
 /* ---------- 子函数 C: 预览启动 ---------- */
@@ -1215,6 +1237,9 @@ function setup(){
 
   // 启动预览
   startPreview();
+
+  // 头像默认缩略图
+  document.getElementById('avatarThumb').style.background = 'linear-gradient(160deg,#ffd0a8,#ff9d5c)';
 }
 
 // 启动应用
