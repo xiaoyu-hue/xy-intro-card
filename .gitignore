@@ -9,3 +9,10 @@ package-lock.json
 # 临时图片与日志
 *.png
 *.log
+
+# 审查报告与内部工作文档（不提交到 GitHub）
+docs/*_REVIEW.md
+docs/FIX_SUMMARY.md
+docs/IMPLEMENTATION_PLAN.md
+docs/THEME_SYNC_PLAN.md
+docs/*.tmp
