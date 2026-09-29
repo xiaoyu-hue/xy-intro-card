@@ -97,7 +97,7 @@ var alert = function(msg) { console.log('[ALERT]', msg); };
 jsCode = stubEnvironment + '\n' + jsCode + '\n';
 
 // 导出测试所需函数，并暴露内部变量以便测试修改
-jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, currentTheme: currentTheme, INDUSTRY_PRESETS: INDUSTRY_PRESETS, getThemeVarValues: getThemeVarValues, THEMES_CONFIG: THEMES_CONFIG }; _exports._ct_ref = currentTheme; module.exports = _exports;';
+jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, AppState: AppState, INDUSTRY_PRESETS: INDUSTRY_PRESETS, getThemeVarValues: getThemeVarValues, THEMES_CONFIG: THEMES_CONFIG }; _exports._ct_ref = AppState.theme; module.exports = _exports;';
 
 // 写入临时文件并执行
 const tmpPath = '/tmp/xy-intro-card-test.js';

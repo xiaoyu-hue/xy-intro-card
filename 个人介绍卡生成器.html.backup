@@ -692,20 +692,15 @@ function registerTemplate(name, config) {
    SECTION 4: 状态管理（应用运行时可变状态）
    职责：维护当前模式、主题、头像数据
    ============================================================ */
-// Phase 5: 状态管理器（集中管理应用状态，替代分散的全局变量）
-var AppState = {
-  mode: 'oc',
-  theme: { a: '#ff9d5c', b: '#ffd0a8', mode: 'dark' },
-  avatar: null,
-  timer: null,
-  preview: null
-};
+let currentMode = 'oc';
+let currentTheme = {a:'#ff9d5c', b:'#ffd0a8', mode:'dark'};
+let avatarData = null;
 /* ============================================================
-   SECTION 6: 渲染逻辑（纯函数，无副作用）
-   职责：主题色计算、卡片 DOM 生成、导出 HTML 组装
+   SECTION 5: 配置读取（从 DOM 读取用户输入）
+   职责：采集表单数据，清洗校验，返回配置对象
    ============================================================ */
-function themeInfo(theme){
-  const t = theme || AppState.theme;
+function readCfg(){
+  const t = theme || currentTheme;
   const a = t.a, b = t.b, h = getHue(a);
   const isLight = t.mode === 'light';
   const blobs = isLight ? [
@@ -722,7 +717,7 @@ function themeInfo(theme){
 
 /* Phase 4: 生成完整 :root 变量字符串（暗色主题 = 默认值，light 主题注入 palette 覆盖） */
 function getThemeVarValues(theme){
-  const t = theme || AppState.theme;
+  const t = theme || currentTheme;
   const {a,b,blobs} = themeInfo(t);
   var v = {
     '--amber':a,'--amber-2':b,
@@ -760,8 +755,8 @@ function getRootVarString(theme){
    职责：采集表单数据，清洗校验，返回配置对象
    ============================================================ */
 function readCfg(){
-  const c = { mode:AppState.mode, theme:AppState.theme, avatar:AppState.avatar };
-  if(AppState.mode==='oc'){
+  const c = { mode:currentMode, theme:currentTheme, avatar:avatarData };
+  if(currentMode==='oc'){
     c.title = (val('clubName')||'俱乐部名').trim().slice(0,50);
     c.script = (val('tagline')||'').trim().slice(0,100);
     c.name = (val('name')||'名字').trim().slice(0,30);
@@ -784,7 +779,7 @@ function readCfg(){
 function val(id){ var el=document.getElementById(id); return el?el.value:''; }
 
 function placeholder(c){
-  const theme = c.theme || AppState.theme;
+  const theme = c.theme || currentTheme;
   const {a} = themeInfo(theme);
   const init = (c.mode==='oc' ? (c.name||c.title) : c.title) || '?';
   const ch = init.charAt(0);
@@ -829,7 +824,7 @@ function buildCardInner(c, anim){
 function favicon(c,a,b){
   const init = (c.mode==='oc'?(c.name||c.title):c.title)||'?';
   const ch = init.charAt(0);
-  const theme = c.theme || AppState.theme;
+  const theme = c.theme || currentTheme;
   var rectFill = '#0b0a12';
   if (theme.palette && theme.palette.avatarRect) rectFill = theme.palette.avatarRect;
   const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='"+b+"'/><stop offset='1' stop-color='"+a+"'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='"+rectFill+"'/>"+
@@ -838,7 +833,7 @@ function favicon(c,a,b){
 }
 
 function buildDoc(c, opts){
-  const theme = c.theme || AppState.theme;
+  const theme = c.theme || currentTheme;
   const {a,b,blobs} = themeInfo(theme);
   const inner = buildCardInner(c, opts.animate);
   const titleText = c.mode==='oc' ? (c.title+' · '+c.name) : c.title;
@@ -872,15 +867,15 @@ function buildDoc(c, opts){
    SECTION 7: 预览更新（UI 状态同步）
    职责：加载预览、更新主题色、调度防抖更新
    ============================================================ */
-AppState.preview = document.getElementById('preview');
-AppState.timer = null;
+const preview = document.getElementById('preview');
+let updateTimer = null;
 
 function loadPreview(){
   preview.srcdoc = buildDoc(readCfg(), {animate:false});
 }
 function updatePreview(){
   const c = readCfg();
-  const theme = c.theme || AppState.theme;
+  const theme = c.theme || currentTheme;
   const doc = preview.contentDocument;
   if(!doc) return;
   const root = doc.documentElement;
@@ -889,7 +884,7 @@ function updatePreview(){
   const card = doc.getElementById('card');
   if(card) card.innerHTML = buildCardInner(c, false);
 }
-function scheduleUpdate(){ clearTimeout(AppState.timer); AppState.timer = setTimeout(function(){ updatePreview(); saveState(); }, 220); }
+function scheduleUpdate(){ clearTimeout(updateTimer); updateTimer = setTimeout(function(){ updatePreview(); saveState(); }, 220); }
 
 /* ============================================================
    SECTION 8: 本地持久化（Phase 1）
@@ -902,8 +897,8 @@ function saveState() {
   try {
     var state = {
       v: STORAGE_VERSION,
-      mode: AppState.mode,
-      theme: AppState.theme,
+      mode: currentMode,
+      theme: currentTheme,
       fields: {}
     };
     document.querySelectorAll('input, textarea, select').forEach(function(el) {
@@ -935,7 +930,7 @@ function loadState() {
     if (state.mode) setMode(state.mode);
     // 恢复主题
     if (state.theme) {
-      AppState.theme = Object.assign({mode:'dark', palette:null}, state.theme);
+      currentTheme = Object.assign({mode:'dark', palette:null}, state.theme);
       document.getElementById('customColor').value = state.theme.a;
     }
     // 恢复字段
@@ -968,7 +963,7 @@ function addInputFeedback(el, validator, errorMsg) {
 }
 
 function setMode(mode){
-  AppState.mode = mode;
+  currentMode = mode;
   document.getElementById('modeOc').classList.toggle('active', mode==='oc');
   document.getElementById('modeGeneral').classList.toggle('active', mode==='general');
   document.getElementById('fieldsOc').style.display = mode==='oc' ? '' : 'none';
@@ -990,12 +985,12 @@ function buildThemeSwatches(){
     }
     themes.forEach(function(t){
       const key = t.key || t.a.toLowerCase(); // 用 key 或色值作为唯一标识
-      s.className = 'swatch' + (key === (AppState.theme.key || AppState.theme.a.toLowerCase()) ? ' active':'');
+      s.className = 'swatch' + (key === (currentTheme.key || currentTheme.a.toLowerCase()) ? ' active':'');
       s.style.background = 'linear-gradient(160deg,'+t.b+','+t.a+')';
       s.title = t.name + (t.desc ? ' · '+t.desc : '');
       s.textContent = t.name.charAt(0);
       s.addEventListener('click', function(){
-        AppState.theme = {a:t.a, b:t.b, mode:t.mode, palette:t.palette};
+        currentTheme = {a:t.a, b:t.b, mode:t.mode, palette:t.palette};
         document.getElementById('customColor').value = t.a;
         document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
         s.classList.add('active');
@@ -1051,7 +1046,7 @@ function setup(){
 
   // 自定义颜色
   document.getElementById('customColor').addEventListener('input', function(e){
-    AppState.theme = {a:e.target.value, b:lighten(e.target.value), mode: AppState.theme.mode || 'dark'};
+    currentTheme = {a:e.target.value, b:lighten(e.target.value), mode: currentTheme.mode || 'dark'};
     document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
     scheduleUpdate();
   });
@@ -1087,18 +1082,18 @@ function setup(){
           const cw = Math.max(1, Math.round(w*scale)), ch = Math.max(1, Math.round(h*scale));
           const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
           cv.getContext('2d').drawImage(img, 0, 0, cw, ch);
-          AppState.avatar = cv.toDataURL('image/jpeg', 0.85);
-        }catch(err){ AppState.avatar = dataURL; }
+          avatarData = cv.toDataURL('image/jpeg', 0.85);
+        }catch(err){ avatarData = dataURL; }
         const thumb = document.getElementById('avatarThumb');
-        if(thumb) thumb.src = AppState.avatar;
+        if(thumb) thumb.src = avatarData;
         scheduleUpdate();
       };
-      img.onerror = function(){ AppState.avatar = dataURL; const thumb = document.getElementById('avatarThumb'); if(thumb) thumb.src = AppState.avatar; scheduleUpdate(); };
+      img.onerror = function(){ avatarData = dataURL; const thumb = document.getElementById('avatarThumb'); if(thumb) thumb.src = avatarData; scheduleUpdate(); };
       img.src = dataURL;
     };
     reader.readAsDataURL(f);
   });
-  document.getElementById('avatarClear').addEventListener('click', function(){ AppState.avatar=null; fileInput.value=''; document.getElementById('avatarThumb').removeAttribute('src'); scheduleUpdate(); });
+  document.getElementById('avatarClear').addEventListener('click', function(){ avatarData=null; fileInput.value=''; document.getElementById('avatarThumb').removeAttribute('src'); scheduleUpdate(); });
 
   // 下载卡片
   document.getElementById('download').addEventListener('click', function(){
@@ -1126,9 +1121,9 @@ function setup(){
     document.getElementById('zodiac').selectedIndex = 3;
     document.getElementById('footMode').value = 'default';
     document.getElementById('footCustom').style.display = 'none';
-    AppState.theme = {a:'#ff9d5c', b:'#ffd0a8', mode:'dark'};
+    currentTheme = {a:'#ff9d5c', b:'#ffd0a8', mode:'dark'};
     document.getElementById('customColor').value = '#ff9d5c';
-    AppState.avatar = null; document.getElementById('avatarThumb').removeAttribute('src');
+    avatarData = null; document.getElementById('avatarThumb').removeAttribute('src');
     document.querySelectorAll('#themeRow .swatch').forEach(function(x,i){ x.classList.toggle('active', i===0); });
     setMode('oc');
     loadPreview();
