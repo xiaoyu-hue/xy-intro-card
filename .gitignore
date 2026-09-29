@@ -13,6 +13,7 @@ package-lock.json
 # 审查报告与内部工作文档（不提交到 GitHub）
 docs/*_REVIEW.md
 docs/FIX_SUMMARY.md
+docs/FIX_SUMMARY_*.md
 docs/IMPLEMENTATION_PLAN.md
 docs/THEME_SYNC_PLAN.md
 docs/*.tmp
