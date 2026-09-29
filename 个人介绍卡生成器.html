@@ -620,7 +620,7 @@ function getHue(hex){ var c=hexToRgb(hex); return rgbToHsl(c[0],c[1],c[2])[0]; }
    SECTION 2: 特性检测工具
    职责：统一检测浏览器 API 支持情况，替代分散的 matchMedia 调用
    ============================================================ */
-var Features = {
+const Features = {
   backdropFilter: function() { return typeof CSS !== 'undefined' && CSS.supports('backdrop-filter', 'blur(10px)'); },
   containerQueries: function() { return typeof CSS !== 'undefined' && CSS.supports('container-type', 'inline-size'); },
   intersectionObserver: function() { return 'IntersectionObserver' in (typeof window !== 'undefined' ? window : {}); },
@@ -699,7 +699,7 @@ function applyIndustryPreset(key){
 }
 
 /* Phase 3: 模板注册表（扩展点） */
-var CARD_TEMPLATES = {};
+const CARD_TEMPLATES = {};
 function registerTemplate(name, config) {
   CARD_TEMPLATES[name] = config;
 }
@@ -709,7 +709,7 @@ function registerTemplate(name, config) {
    职责：维护当前模式、主题、头像数据
    ============================================================ */
 // Phase 5: 状态管理器（集中管理应用状态，替代分散的全局变量）
-var AppState = {
+const AppState = {
   mode: 'oc',
   theme: { a: '#ff9d5c', b: '#ffd0a8', mode: 'dark' },
   avatar: null,
@@ -911,8 +911,8 @@ function scheduleUpdate(){ clearTimeout(AppState.timer); AppState.timer = setTim
    SECTION 8: 本地持久化（Phase 1）
    职责：自动保存/恢复表单状态，防止刷新丢失
    ============================================================ */
-var STORAGE_KEY = 'xy-intro-card-state-v1';
-var STORAGE_VERSION = 'v1'; // 版本号，用于迁移检测
+const STORAGE_KEY = 'xy-intro-card-state-v1';
+const STORAGE_VERSION = 'v1'; // 版本号，用于迁移检测
 
 function saveState() {
   try {
