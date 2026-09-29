@@ -1116,7 +1116,8 @@ function setup(){
 
   // 启动预览
   preview.addEventListener('load', function(){ updatePreview(); });
-  if (!restored) loadPreview();
+  // 无论是否有恢复状态，都先加载预览（确保 iframe 有内容）
+  loadPreview();
 }
 
 // 启动应用
@@ -1128,9 +1129,20 @@ setup();
    ============================================================ */
 window.XYIntroCard = {
   registerTemplate: registerTemplate,
-  addTheme: function(name, a, b) {
-    THEMES_CONFIG[name] = { name: name, a: a, b: b };
-    THEMES.push(THEMES_CONFIG[name]);
+  addTheme: function(name, config) {
+    // 支持旧签名 (name, a, b) 和新签名 (name, config)
+    var theme;
+    if (typeof config === 'string' || typeof config === 'number') {
+      // 旧签名：addTheme(name, a, b)
+      theme = { name: name, a: arguments[1], b: arguments[2] || lighten(arguments[1]) };
+    } else {
+      // 新签名：addTheme(name, config)
+      theme = Object.assign({ mode: 'dark', palette: null }, config);
+      theme.name = name;
+    }
+    THEMES_CONFIG[name] = theme;
+    THEMES.push(theme);
+    buildThemeSwatches(); // 重新渲染色块
   },
   onCardExport: [],
   version: '2.1.0-Phase4',

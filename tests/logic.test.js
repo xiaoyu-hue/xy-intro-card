@@ -97,7 +97,7 @@ var alert = function(msg) { console.log('[ALERT]', msg); };
 jsCode = stubEnvironment + '\n' + jsCode + '\n';
 
 // 导出测试所需函数，并暴露内部变量以便测试修改
-jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, currentTheme: currentTheme, INDUSTRY_PRESETS: INDUSTRY_PRESETS }; _exports._ct_ref = currentTheme; module.exports = _exports;';
+jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, currentTheme: currentTheme, INDUSTRY_PRESETS: INDUSTRY_PRESETS, getThemeVarValues: getThemeVarValues, THEMES_CONFIG: THEMES_CONFIG }; _exports._ct_ref = currentTheme; module.exports = _exports;';
 
 // 写入临时文件并执行
 const tmpPath = '/tmp/xy-intro-card-test.js';
@@ -381,6 +381,82 @@ group('测试 7: 行业预设数据注入', function() {
   assert(doc.includes('城市读者俱乐部'), '读书会预设 title 正确');
   assert(doc.includes('发起人与主理人'), '读书会预设 script 正确');
   assert(doc.includes('读书是最好的旅行'), '读书会预设签名正确');
+
+  // 重置
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
+  g._ct_ref.a = '#ff9d5c';
+  g._ct_ref.b = '#ffd0a8';
+});
+
+// ============================================================
+// 测试 8: blob 颜色验证（Phase 4）
+// ============================================================
+group('测试 8: blob 颜色验证', function() {
+  const g = require('/tmp/xy-intro-card-test');
+
+  // 暗色主题 blob 应为高饱和活跃色
+  g._ct_ref.a = '#ff9d5c';
+  g._ct_ref.b = '#ffd0a8';
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
+  var darkDoc = g.buildDoc(Object.assign({}, ocConfig), { animate: false });
+  var darkBlobs = darkDoc.match(/--blob[123]:[^;]+/g);
+  // 取最后一个值（rootVars 覆盖后的值）
+  var lastBlob1 = darkBlobs[darkBlobs.length - 3];
+  var lastBlob2 = darkBlobs[darkBlobs.length - 2];
+  var lastBlob3 = darkBlobs[darkBlobs.length - 1];
+  assert(lastBlob1.indexOf(',.45)') >= 0, '暗色主题 blob1 alpha 应为 .45, got: ' + lastBlob1);
+  assert(lastBlob2.indexOf(',.30)') >= 0, '暗色主题 blob2 alpha 应为 .30, got: ' + lastBlob2);
+  assert(lastBlob3.indexOf(',.26)') >= 0, '暗色主题 blob3 alpha 应为 .26, got: ' + lastBlob3);
+
+  // 亮色主题 blob 应为低透明克制色
+  g._ct_ref.a = '#5a6b7c';
+  g._ct_ref.b = '#8a9dad';
+  g._ct_ref.mode = 'light';
+  g._ct_ref.palette = {bg:'#f7f4f0'};
+  var lightCfg = Object.assign({}, generalConfig, { theme: { a: '#5a6b7c', b: '#8a9dad', mode: 'light', palette: g._ct_ref.palette } });
+  var lightDoc = g.buildDoc(lightCfg, { animate: false });
+  var lightBlobs = lightDoc.match(/--blob[123]:[^;]+/g);
+  var lBlob1 = lightBlobs[lightBlobs.length - 3];
+  var lBlob2 = lightBlobs[lightBlobs.length - 2];
+  var lBlob3 = lightBlobs[lightBlobs.length - 1];
+  assert(lBlob1.indexOf('0.14)') >= 0, '亮色主题 blob1 alpha 应为 0.14, got: ' + lBlob1);
+  assert(lBlob2.indexOf('0.09)') >= 0, '亮色主题 blob2 alpha 应为 0.09, got: ' + lBlob2);
+  assert(lBlob3.indexOf('0.07)') >= 0, '亮色主题 blob3 alpha 应为 0.07, got: ' + lBlob3);
+
+  // 重置
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
+  g._ct_ref.a = '#ff9d5c';
+  g._ct_ref.b = '#ffd0a8';
+});
+
+// ============================================================
+// 测试 9: getThemeVarValues 和 THEMES_CONFIG 导出（Phase 4）
+// ============================================================
+group('测试 9: 内部函数导出验证', function() {
+  const g = require('/tmp/xy-intro-card-test');
+
+  // 验证 getThemeVarValues 函数可访问
+  assert(typeof g.getThemeVarValues === 'function', 'getThemeVarValues 应为函数');
+
+  // 验证 THEMES_CONFIG 可访问
+  assert(typeof g.THEMES_CONFIG === 'object', 'THEMES_CONFIG 应为对象');
+  assert(g.THEMES_CONFIG.neutral_morning !== undefined, '应包含 neutral_morning 主题');
+  assert(g.THEMES_CONFIG.neutral_cloud !== undefined, '应包含 neutral_cloud 主题');
+  assert(g.THEMES_CONFIG.neutral_oat !== undefined, '应包含 neutral_oat 主题');
+  assert(g.THEMES_CONFIG.neutral_navy !== undefined, '应包含 neutral_navy 主题');
+
+  // 验证 getThemeVarValues 返回正确值
+  g._ct_ref.a = '#5a6b7c';
+  g._ct_ref.b = '#8a9dad';
+  g._ct_ref.mode = 'light';
+  g._ct_ref.palette = {bg:'#f7f4f0',text:'#1e2935'};
+  var vars = g.getThemeVarValues();
+  assert(vars['--bg-solid'] === '#f7f4f0', 'getThemeVarValues 应返回 --bg-solid');
+  assert(vars['--text'] === '#1e2935', 'getThemeVarValues 应返回 --text');
+  assert(vars['--amber'] === '#5a6b7c', 'getThemeVarValues 应返回 --amber');
 
   // 重置
   g._ct_ref.mode = 'dark';

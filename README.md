@@ -110,7 +110,7 @@
 | [Canvas API](https://developer.mozilla.org/zh-CN/docs/Web/API/Canvas_API) | 头像上传后压缩到 512px，避免大图卡死 |
 | [Blob / `URL.createObjectURL`](https://developer.mozilla.org/zh-CN/docs/Web/API/URL/createObjectURL) | 把生成的卡片导出为独立 HTML 文件 |
 | CSS [`backdrop-filter`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/backdrop-filter) | 液态玻璃（毛玻璃）质感 |
-| CSS 自定义属性与 [`color-mix()`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/color_value/color-mix) | 四套主题色（落日金 / 深海蓝 / 极光紫 / 晨雾白）计算与切换 |
+| CSS 自定义属性与 [`color-mix()`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/color_value/color-mix) | 八套主题色（4 套暗色液态玻璃 + 4 套亮色商务中性）计算与切换 |
 | [`prefers-reduced-motion`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@media/prefers-reduced-motion) | 尊重系统「减弱动态」无障碍设置 |
 
 ### 视觉与设计灵感
