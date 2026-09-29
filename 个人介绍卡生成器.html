@@ -970,16 +970,24 @@ function loadState() {
    职责：实时验证输入，显示错误提示
    ============================================================ */
 function addInputFeedback(el, validator, errorMsg) {
+  if (!el) return;
+  // 为每个输入创建唯一的 error-msg id
+  var errorId = el.id + '-error';
+  // 创建 error-msg 元素
+  var errorEl = document.createElement('div');
+  errorEl.className = 'error-msg';
+  errorEl.id = errorId;
+  errorEl.setAttribute('aria-live', 'polite');
+  el.parentElement.appendChild(errorEl);
+  // 添加 aria-describedby 关联
+  el.setAttribute('aria-describedby', errorId);
+
   el.addEventListener('input', function() {
     var valid = validator(this.value);
     this.classList.toggle('input-error', !valid);
     var field = this.closest('.field');
     if (field) field.classList.toggle('invalid', !valid);
-    var hint = this.parentElement.querySelector('.hint');
-    if (hint) {
-      hint.textContent = valid ? '' : (errorMsg || '输入无效');
-      hint.style.color = valid ? '' : '#ff6b6b';
-    }
+    errorEl.textContent = valid ? '' : (errorMsg || '输入无效');
   });
 }
 
