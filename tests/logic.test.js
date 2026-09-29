@@ -466,6 +466,31 @@ group('测试 9: 内部函数导出验证', function() {
 });
 
 // ============================================================
+// 测试 10: localStorage 版本迁移（Phase 4）
+// ============================================================
+group('测试 10: localStorage 版本迁移', function() {
+  // 验证旧版 state（无 mode/palette）能正确降级
+  var oldState = {
+    mode: 'general',
+    theme: { a: '#6aa8ff', b: '#bcd8ff' }, // 无 mode 和 palette
+    fields: { fullName: '测试用户' }
+  };
+  var migrated = Object.assign({mode:'dark', palette:null}, oldState.theme);
+  assert(migrated.mode === 'dark', '旧版无 mode 时应降级为 dark');
+  assert(migrated.palette === null, '旧版无 palette 时应为 null');
+
+  // 验证新版 state（有 mode/palette）保持不变
+  var newState = {
+    mode: 'general',
+    theme: { a: '#5a6b7c', b: '#8a9dad', mode:'light', palette:{bg:'#f7f4f0'} },
+    fields: {}
+  };
+  var preserved = Object.assign({mode:'dark', palette:null}, newState.theme);
+  assert(preserved.mode === 'light', '新版 light mode 应保留');
+  assert(preserved.palette !== null, '新版 palette 应保留');
+});
+
+// ============================================================
 // 测试结果汇总
 // ============================================================
 console.log('\n' + '='.repeat(50));

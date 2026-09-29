@@ -891,10 +891,12 @@ function scheduleUpdate(){ clearTimeout(updateTimer); updateTimer = setTimeout(f
    职责：自动保存/恢复表单状态，防止刷新丢失
    ============================================================ */
 var STORAGE_KEY = 'xy-intro-card-state-v1';
+var STORAGE_VERSION = 'v1'; // 版本号，用于迁移检测
 
 function saveState() {
   try {
     var state = {
+      v: STORAGE_VERSION,
       mode: currentMode,
       theme: currentTheme,
       fields: {}
@@ -912,9 +914,21 @@ function loadState() {
     var raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return false;
     var state = JSON.parse(raw);
+
+    // Phase 4: 版本迁移检测（兼容旧版无 mode/palette 的 state）
+    if (state.v && state.v !== STORAGE_VERSION) {
+      // 未来版本迁移逻辑在此扩展
+      console.warn('[xy-intro-card] 检测到旧版本存储，正在迁移...');
+    }
+    // 确保 theme 有 mode 和 palette 字段（兼容旧数据）
+    if (state.theme && !state.theme.mode) {
+      state.theme.mode = 'dark';
+      state.theme.palette = null;
+    }
+
     // 恢复模式
     if (state.mode) setMode(state.mode);
-    // 恢复主题（兼容旧 state 无 mode/palette）
+    // 恢复主题
     if (state.theme) {
       currentTheme = Object.assign({mode:'dark', palette:null}, state.theme);
       document.getElementById('customColor').value = state.theme.a;
@@ -970,8 +984,8 @@ function buildThemeSwatches(){
       container.appendChild(lbl);
     }
     themes.forEach(function(t){
-      const s = document.createElement('div');
-      s.className = 'swatch' + ((t.mode||'dark') === (currentTheme.mode||'dark') && t.a.toLowerCase()===currentTheme.a.toLowerCase()?' active':'');
+      const key = t.key || t.a.toLowerCase(); // 用 key 或色值作为唯一标识
+      s.className = 'swatch' + (key === (currentTheme.key || currentTheme.a.toLowerCase()) ? ' active':'');
       s.style.background = 'linear-gradient(160deg,'+t.b+','+t.a+')';
       s.title = t.name + (t.desc ? ' · '+t.desc : '');
       s.textContent = t.name.charAt(0);
@@ -985,6 +999,10 @@ function buildThemeSwatches(){
       container.appendChild(s);
     });
   }
+  // 给每个主题分配唯一 key（避免色值相同时误判）
+  THEMES.forEach(function(t, i){
+    if (!t.key) t.key = Object.keys(THEMES_CONFIG)[i];
+  });
   row.innerHTML = '';
   renderGroup(groups.dark, '液态玻璃', row);
   renderGroup(groups.light, '商务中性', row);
