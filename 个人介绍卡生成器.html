@@ -16,6 +16,18 @@
     background:var(--bg); color:var(--text); line-height:1.5;
     padding:24px 18px 60px;
   }
+  /* Phase 5: 屏幕阅读器专用样式 */
+  .sr-only{
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
   header{ max-width:1080px; margin:0 auto 22px; }
   header h1{ font-size:24px; letter-spacing:1px; }
   header p{ color:var(--dim); margin-top:6px; font-size:14px; }
@@ -91,9 +103,9 @@
 <div class="wrap">
   <!-- ============ 表单 ============ -->
   <section class="panel">
-    <div class="modebar">
-      <button id="modeOc" class="active" data-mode="oc" aria-pressed="true" aria-controls="fieldsOc">人设卡</button>
-      <button id="modeGeneral" data-mode="general" aria-pressed="false" aria-controls="fieldsGeneral">通用名片</button>
+    <div class="modebar" role="tablist" aria-label="卡片模式选择">
+      <button id="modeOc" class="active" data-mode="oc" aria-pressed="true" aria-controls="fieldsOc" role="tab">人设卡</button>
+      <button id="modeGeneral" data-mode="general" aria-pressed="false" aria-controls="fieldsGeneral" role="tab">通用名片</button>
     </div>
 
     <!-- 人设卡字段 -->
@@ -201,7 +213,7 @@
 
   <!-- ============ 预览 ============ -->
   <section class="panel preview">
-    <div class="phone"><iframe id="preview" sandbox="allow-scripts allow-same-origin" title="卡片预览（实时显示您编辑的名片效果）" aria-label="卡片预览区域"></iframe></div>
+    <div class="phone"><iframe id="preview" sandbox="allow-scripts allow-same-origin" title="卡片预览（实时显示您编辑的名片效果）" aria-label="卡片预览区域" role="img" aria-live="polite"></iframe></div>
     <div class="preview-tip">↑ 这是卡片在手机上的样子（实时更新）</div>
     <div class="actions">
       <button class="btn primary" id="download">下载这张卡片</button>
@@ -1045,6 +1057,12 @@ function bindEvents(){
     origSetMode(mode);
     document.getElementById('modeOc').setAttribute('aria-pressed', mode==='oc'?'true':'false');
     document.getElementById('modeGeneral').setAttribute('aria-pressed', mode==='general'?'true':'false');
+    // Phase 5: 更新焦点到对应面板
+    if (mode === 'oc') {
+      document.getElementById('fieldsOc').focus();
+    } else {
+      document.getElementById('fieldsGeneral').focus();
+    }
   };
 
   // 文本输入
