@@ -1004,6 +1004,17 @@ function buildThemeSwatches(){
       lbl.textContent = label;
       container.appendChild(lbl);
     }
+    function selectTheme(t){
+      AppState.theme = {a:t.a, b:t.b, mode:t.mode, palette:t.palette};
+      document.getElementById('customColor').value = t.a;
+      document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
+      // Find the swatch that matches this theme and make it active
+      const key = t.key || t.a.toLowerCase();
+      document.querySelectorAll('#themeRow .swatch').forEach(function(x){
+        if (x.getAttribute('aria-label') === t.name + ' 主题') x.classList.add('active');
+      });
+      scheduleUpdate();
+    }
     themes.forEach(function(t){
       const s = document.createElement('div');
       const key = t.key || t.a.toLowerCase(); // 用 key 或色值作为唯一标识
@@ -1011,12 +1022,17 @@ function buildThemeSwatches(){
       s.style.background = 'linear-gradient(160deg,'+t.b+','+t.a+')';
       s.title = t.name + (t.desc ? ' · '+t.desc : '');
       s.textContent = t.name.charAt(0);
+      s.setAttribute('tabindex', '0');
+      s.setAttribute('role', 'button');
+      s.setAttribute('aria-label', t.name + ' 主题');
       s.addEventListener('click', function(){
-        AppState.theme = {a:t.a, b:t.b, mode:t.mode, palette:t.palette};
-        document.getElementById('customColor').value = t.a;
-        document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
-        s.classList.add('active');
-        scheduleUpdate();
+        selectTheme(t);
+      });
+      s.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          selectTheme(t);
+        }
       });
       container.appendChild(s);
     });
