@@ -54,6 +54,9 @@
   .row{ display:flex; gap:10px; }
   .row > *{ flex:1; }
   .theme-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .industry-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:4px; }
+  .industry-row .btn{ padding:7px 14px; font-size:12px; flex:0 0 auto; }
+  .theme-label{ display:block; width:100%; font-size:11px; color:var(--dim); margin-top:6px; letter-spacing:1px; text-transform:uppercase; }
   .swatch{
     width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent;
     display:inline-flex; align-items:center; justify-content:center; font-size:11px; color:#1a0f06;
@@ -126,6 +129,15 @@
 
     <!-- 通用名片字段 -->
     <div id="fieldsGeneral" style="display:none">
+      <!-- Phase 4: 行业预设 -->
+      <div class="field">
+        <label>行业预设 <span style="font-weight:normal;font-size:11px;color:var(--dim)">（一键填入中性演示数据，点击后仍可手动修改）</span></label>
+        <div class="industry-row" id="industryRow">
+          <button class="btn" data-industry="reading" type="button">📖 读书会</button>
+          <button class="btn" data-industry="restaurant" type="button">🍽 本地餐企</button>
+          <button class="btn" data-industry="business" type="button">🏢 小型企业</button>
+        </div>
+      </div>
       <div class="field">
         <label>姓名 / 主标题</label>
         <input type="text" id="fullName" value="你的名字">
@@ -224,16 +236,43 @@ const CARD_CSS = `
     --blob1:rgba(255,138,76,.48);
     --blob2:rgba(96,120,255,.38);
     --blob3:rgba(188,90,224,.30);
+    --name-gradient-start:#ffffff;
+    --name-shine-color:rgba(255,255,255,0.95);
+    /* Phase 4: 商务主题扩展变量（暗色默认 = 现有硬编码值，light 主题由 themeVars 覆盖） */
+    --bg-solid:#06060b;
+    --bg-grad-top:#171425;
+    --card-shadow-1:rgba(0,0,0,0.78);
+    --card-shadow-2:rgba(0,0,0,0.42);
+    --card-highlight:rgba(255,255,255,0.20);
+    --card-edge:rgba(255,255,255,0.35);
+    --card-border-inset-1:rgba(255,255,255,0.40);
+    --card-border-inset-2:rgba(255,255,255,0.05);
+    --chip-bg:rgba(255,255,255,0.05);
+    --chip-line:rgba(255,255,255,0.12);
+    --pill-bg1:rgba(255,255,255,0.12);
+    --pill-bg2:rgba(255,255,255,0.04);
+    --pill-border:rgba(255,255,255,0.18);
+    --pill-inset:rgba(255,255,255,0.25);
+    --sign-color:#fffaf3;
+    --foot-color:rgba(246,243,238,0.3);
+    --text-selection:#fff;
+    --fallback-bg1:rgba(30,28,40,0.95);
+    --fallback-bg2:rgba(14,13,20,0.97);
+    --avatar-rect:#0b0a12;
+    --avatar-border:rgba(255,255,255,0.25);
+    --avatar-shadow:rgba(0,0,0,0.45);
+    --avatar-gradient-stop3:#6a4630;
+    --name-shine-stop:rgba(255,255,255,0.95);
   }
 
   *{ box-sizing:border-box; margin:0; padding:0; }
-  ::selection{ background:rgba(var(--amber-rgb),0.38); color:#fff; }
-  ::-moz-selection{ background:rgba(var(--amber-rgb),0.38); color:#fff; }
+  ::selection{ background:rgba(var(--amber-rgb),0.38); color:var(--text-selection); }
+  ::-moz-selection{ background:rgba(var(--amber-rgb),0.38); color:var(--text-selection); }
 
   body{
     min-height:100vh; min-height:100dvh;
-    font-family:var(--cn); color:var(--text); background:#06060b;
-    background:radial-gradient(120% 90% at 50% -10%, #171425 0%, #06060b 58%) fixed;
+    font-family:var(--cn); color:var(--text); background:var(--bg-solid);
+    background:radial-gradient(120% 90% at 50% -10%, var(--bg-grad-top) 0%, var(--bg-solid) 58%) fixed;
     overflow-x:hidden;
     -webkit-text-size-adjust:100%; text-size-adjust:100%;
     -webkit-tap-highlight-color:transparent;
@@ -277,12 +316,12 @@ const CARD_CSS = `
   .card::before{
     content:""; position:absolute; inset:0; z-index:1; border-radius:inherit;
     background:radial-gradient(70% 50% at var(--mx,50%) var(--my,0%),
-      rgba(255,255,255,0.20), rgba(255,255,255,0) 62%);
+      var(--card-highlight), rgba(255,255,255,0) 62%);
     pointer-events:none;
   }
   .card::after{
     content:""; position:absolute; left:8%; right:8%; bottom:-2px; height:1px; z-index:1;
-    background:linear-gradient(90deg, transparent, rgba(255,255,255,0.35), transparent);
+    background:linear-gradient(90deg, transparent, var(--card-edge), transparent);
     pointer-events:none;
   }
   .card > *{ position:relative; z-index:2; }
@@ -312,8 +351,8 @@ const CARD_CSS = `
   @keyframes breathe{ 0%,100%{ transform:scale(1); opacity:.55; } 50%{ transform:scale(1.06); opacity:1; } }
   .avatar{
     position:relative; z-index:2; width:100%; height:100%; border-radius:50%; object-fit:cover; display:block;
-    background:radial-gradient(circle at 50% 32%, var(--amber-2) 0%, var(--amber) 42%, #6a4630 100%);
-    border:1px solid rgba(255,255,255,0.25); box-shadow:0 10px 26px rgba(0,0,0,0.45);
+    background:radial-gradient(circle at 50% 32%, var(--amber-2) 0%, var(--amber) 42%, var(--avatar-gradient-stop3) 100%);
+    border:1px solid var(--avatar-border); box-shadow:0 10px 26px var(--avatar-shadow);
     transform:translateZ(0); backface-visibility:hidden; -webkit-backface-visibility:hidden;
     animation:floaty 6.8s ease-in-out infinite;
   }
@@ -322,13 +361,13 @@ const CARD_CSS = `
   .club-name{
     position:relative; font-size:32px; font-size:clamp(24px, 7.2vw, 34px);
     font-weight:700; letter-spacing:3px; line-height:1.25;
-    background:linear-gradient(180deg, #ffffff, var(--amber-2));
+    background:linear-gradient(180deg, var(--name-gradient-start), var(--amber-2));
     -webkit-background-clip:text; background-clip:text; color:transparent;
     filter:drop-shadow(0 2px 10px rgba(var(--amber-rgb),0.35));
   }
   .club-name::after{
     content:attr(data-text); position:absolute; left:0; top:0; width:100%;
-    background:linear-gradient(100deg, transparent 40%, rgba(255,255,255,0.95) 50%, transparent 60%);
+    background:linear-gradient(100deg, transparent 40%, var(--name-shine-color) 50%, transparent 60%);
     background-size:260% 100%; background-repeat:no-repeat;
     -webkit-background-clip:text; background-clip:text; color:transparent;
     animation:shine 6.5s ease-in-out infinite; pointer-events:none;
@@ -356,15 +395,15 @@ const CARD_CSS = `
   .label{
     display:inline-block; font-size:11px; font-size:clamp(9px, 2.9vw, 11px); letter-spacing:5px; color:var(--dim);
     padding:5px 14px; margin:24px 0 13px; border-radius:999px;
-    background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12);
+    background:var(--chip-bg); border:1px solid var(--chip-line);
   }
 
   .skills{ display:flex; flex-wrap:wrap; justify-content:center; margin:0 -5px; }
   .skill{
     position:relative; isolation:isolate; margin:0 5px 10px; padding:10px 16px; border-radius:16px;
     font-size:14px; font-size:clamp(12px, 3.7vw, 15px); letter-spacing:1px; color:var(--text);
-    background:linear-gradient(150deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04));
-    border:1px solid rgba(255,255,255,0.18); box-shadow:inset 0 1px 1px rgba(255,255,255,0.25);
+    background:linear-gradient(150deg, var(--pill-bg1), var(--pill-bg2));
+    border:1px solid var(--pill-border); box-shadow:inset 0 1px 1px var(--pill-inset);
     -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px);
     transition:transform .22s cubic-bezier(.34,1.56,.64,1), background .25s ease;
   }
@@ -380,15 +419,15 @@ const CARD_CSS = `
 
   @media (hover:hover) and (pointer:fine){
     .skill:hover{ transform:translateY(-4px); background:rgba(var(--amber-rgb),0.18); }
-    .card:hover .card-bg{ box-shadow:0 36px 80px -28px rgba(0,0,0,0.85), 0 4px 14px rgba(0,0,0,0.42),
-      inset 0 1px 1px rgba(255,255,255,0.45), inset 0 -1px 1px rgba(255,255,255,0.05); }
+    .card:hover .card-bg{ box-shadow:0 36px 80px -28px var(--card-shadow-1), 0 4px 14px var(--card-shadow-2),
+      inset 0 1px 1px var(--card-border-inset-1), inset 0 -1px 1px var(--card-border-inset-2); }
   }
   .skill:active{ transform:scale(.93); background:rgba(var(--amber-rgb),0.16); }
 
   .sign{
     position:relative; margin-top:36px; padding:16px 14px 14px;
     font-size:17px; font-size:clamp(15px, 4.4vw, 18px); line-height:1.85; letter-spacing:1.5px;
-    color:#fffaf3; text-shadow:0 0 14px rgba(var(--amber-2-rgb),0.18);
+    color:var(--sign-color); text-shadow:0 0 14px rgba(var(--amber-2-rgb),0.18);
   }
   .sign::before{ content:""; position:absolute; top:0; left:50%; transform:translateX(-50%); width:60%; height:1px;
     background:linear-gradient(90deg, transparent, rgba(var(--amber-2-rgb),.5), transparent); }
@@ -407,7 +446,7 @@ const CARD_CSS = `
   .skills{ --i:7; }
   .sign{ --i:8; }
 
-  .foot{ margin-top:18px; text-align:center; font-size:11px; font-size:clamp(9px, 2.8vw, 11px); color:rgba(246,243,238,0.3); z-index:1;
+  .foot{ margin-top:18px; text-align:center; font-size:11px; font-size:clamp(9px, 2.8vw, 11px); color:var(--foot-color); z-index:1;
     padding-left:env(safe-area-inset-left,0px); padding-right:env(safe-area-inset-right,0px); }
 
   .particles{ position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
@@ -439,7 +478,7 @@ const CARD_CSS = `
     .sign .script{ animation-duration:7s; }
     .particle{ opacity:.65; }
     .skill{ -webkit-backdrop-filter:none; backdrop-filter:none; background:linear-gradient(150deg, rgba(255,255,255,0.17), rgba(255,255,255,0.07)); }
-    .card::before{ background:radial-gradient(52% 40% at 50% 50%, rgba(255,255,255,0.20), rgba(255,255,255,0) 68%); animation:sheenMove 11s ease-in-out infinite alternate; }
+    .card::before{ background:radial-gradient(52% 40% at 50% 50%, var(--card-highlight), rgba(255,255,255,0) 68%); animation:sheenMove 11s ease-in-out infinite alternate; }
     @keyframes sheenMove{ 0%{ transform:translate(-20%, -7%); } 100%{ transform:translate(20%, 10%); } }
   }
   @media (max-width:414px){ .card{ padding:28px 18px 26px; } .avatar-wrap{ width:112px; height:112px; } .divider{ margin:18px auto; } }
@@ -467,8 +506,8 @@ const CARD_CSS = `
   }
 
   @supports not ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
-    .card-bg{ background:linear-gradient(160deg, rgba(30,28,40,0.95), rgba(14,13,20,0.97)); }
-    .skill{ background:rgba(255,255,255,0.08); }
+    .card-bg{ background:linear-gradient(160deg, var(--fallback-bg1), var(--fallback-bg2)); }
+    .skill{ background:var(--pill-bg1); }
     /* 旧浏览器禁用粒子系统 */
     .particles{ display: none !important; }
     .blob{ opacity: 0.25; }
@@ -583,12 +622,65 @@ const ZODIAC = {'白羊座':'♈','金牛座':'♉','双子座':'♊','巨蟹座
 
 /* Phase 3: 主题配置外置（JSON 结构，便于未来从 CDN 加载） */
 const THEMES_CONFIG = {
-  sunset: { name:'落日金', a:'#ff9d5c', b:'#ffd0a8' },
-  ocean:  { name:'深海蓝', a:'#6aa8ff', b:'#bcd8ff' },
-  aurora: { name:'极光紫', a:'#b06bff', b:'#d9b6ff' },
-  mist:   { name:'晨雾白', a:'#cfd3e6', b:'#ffffff' }
+  sunset: { name:'落日金', a:'#ff9d5c', b:'#ffd0a8', mode:'dark', desc:'俱乐部经典暖调' },
+  ocean:  { name:'深海蓝', a:'#6aa8ff', b:'#bcd8ff', mode:'dark', desc:'俱乐部冷静科技风' },
+  aurora: { name:'极光紫', a:'#b06bff', b:'#d9b6ff', mode:'dark', desc:'俱乐部梦幻创意感' },
+  mist:   { name:'晨雾白', a:'#cfd3e6', b:'#ffffff', mode:'dark', desc:'俱乐部低饱和留白' },
+  // Phase 4: 商务主题家族（中性克制，适配俱乐部外用户）
+  neutral_morning:  { name:'米白·晨雾', a:'#5a6b7c', b:'#8a9dad', mode:'light', desc:'最克制，通用商务名片', palette:{bg:'#f7f4f0',text:'#1e2935',dim:'rgba(30,41,53,0.55)',glass1:'rgba(255,255,255,0.75)',glass2:'rgba(255,255,255,0.50)',line:'rgba(148,163,184,0.40)',shadow1:'rgba(15,23,42,0.10)',shadow2:'rgba(15,23,42,0.06)',highlight:'rgba(255,255,255,0.85)',edge:'rgba(148,163,184,0.38)',borderInset1:'rgba(255,255,255,0.92)',borderInset2:'rgba(255,255,255,0.45)',chipBg:'rgba(255,255,255,0.65)',chipLine:'rgba(148,163,184,0.45)',pillBg1:'rgba(255,255,255,0.70)',pillBg2:'rgba(255,255,255,0.45)',pillBorder:'rgba(148,163,184,0.48)',pillInset:'rgba(255,255,255,0.80)',signColor:'#334155',footColor:'rgba(30,41,53,0.35)',selectionFg:'#1e2935',fallbackBg1:'rgba(240,238,235,0.95)',fallbackBg2:'rgba(225,222,216,0.97)',avatarRect:'#f7f4f0',avatarBorder:'rgba(148,163,184,0.40)',avatarShadow:'rgba(15,23,42,0.12)',avatarGradStop3:'#c4b5a0',nameGradientStart:'#1e2935',nameShineStop:'rgba(255,255,255,0.85)'} },
+  neutral_cloud:    { name:'浅灰·云影', a:'#4a5568', b:'#718096', mode:'light', desc:'理性克制，科技/咨询类', palette:{bg:'#f1f5f9',text:'#0f172a',dim:'rgba(15,23,42,0.52)',glass1:'rgba(255,255,255,0.80)',glass2:'rgba(255,255,255,0.55)',line:'rgba(148,163,184,0.42)',shadow1:'rgba(15,23,42,0.11)',shadow2:'rgba(15,23,42,0.07)',highlight:'rgba(255,255,255,0.90)',edge:'rgba(148,163,184,0.40)',borderInset1:'rgba(255,255,255,0.95)',borderInset2:'rgba(255,255,255,0.50)',chipBg:'rgba(255,255,255,0.70)',chipLine:'rgba(148,163,184,0.48)',pillBg1:'rgba(255,255,255,0.75)',pillBg2:'rgba(255,255,255,0.50)',pillBorder:'rgba(148,163,184,0.50)',pillInset:'rgba(255,255,255,0.85)',signColor:'#1e2935',footColor:'rgba(15,23,42,0.32)',selectionFg:'#0f172a',fallbackBg1:'rgba(226,232,240,0.95)',fallbackBg2:'rgba(203,213,225,0.97)',avatarRect:'#f1f5f9',avatarBorder:'rgba(148,163,184,0.42)',avatarShadow:'rgba(15,23,42,0.14)',avatarGradStop3:'#a0aec0',nameGradientStart:'#0f172a',nameShineStop:'rgba(255,255,255,0.88)'} },
+  neutral_oat:      { name:'燕麦·暖调', a:'#6b5b4e', b:'#9c8b7a', mode:'light', desc:'温和知性，文化/餐饮类', palette:{bg:'#faf8f5',text:'#2c2418',dim:'rgba(44,36,24,0.52)',glass1:'rgba(255,255,255,0.78)',glass2:'rgba(255,255,255,0.52)',line:'rgba(168,156,140,0.42)',shadow1:'rgba(44,36,24,0.09)',shadow2:'rgba(44,36,24,0.05)',highlight:'rgba(255,255,255,0.88)',edge:'rgba(168,156,140,0.38)',borderInset1:'rgba(255,255,255,0.94)',borderInset2:'rgba(255,255,255,0.48)',chipBg:'rgba(255,255,255,0.68)',chipLine:'rgba(168,156,140,0.46)',pillBg1:'rgba(255,255,255,0.72)',pillBg2:'rgba(255,255,255,0.48)',pillBorder:'rgba(168,156,140,0.48)',pillInset:'rgba(255,255,255,0.82)',signColor:'#3d3226',footColor:'rgba(44,36,24,0.32)',selectionFg:'#2c2418',fallbackBg1:'rgba(245,241,234,0.95)',fallbackBg2:'rgba(232,225,214,0.97)',avatarRect:'#faf8f5',avatarBorder:'rgba(168,156,140,0.38)',avatarShadow:'rgba(44,36,24,0.10)',avatarGradStop3:'#c9b8a6',nameGradientStart:'#2c2418',nameShineStop:'rgba(255,255,255,0.85)'} },
+  neutral_navy:     { name:'藏蓝·经典', a:'#2c5282', b:'#4299e1', mode:'light', desc:'最正式，金融/法律类', palette:{bg:'#ffffff',text:'#0f172a',dim:'rgba(15,23,42,0.48)',glass1:'rgba(255,255,255,0.85)',glass2:'rgba(241,245,249,0.70)',line:'rgba(148,163,184,0.38)',shadow1:'rgba(15,23,42,0.10)',shadow2:'rgba(15,23,42,0.06)',highlight:'rgba(255,255,255,0.95)',edge:'rgba(148,163,184,0.42)',borderInset1:'rgba(255,255,255,0.98)',borderInset2:'rgba(241,245,249,0.60)',chipBg:'rgba(241,245,249,0.65)',chipLine:'rgba(148,163,184,0.42)',pillBg1:'rgba(255,255,255,0.80)',pillBg2:'rgba(241,245,249,0.55)',pillBorder:'rgba(148,163,184,0.45)',pillInset:'rgba(255,255,255,0.90)',signColor:'#1e2935',footColor:'rgba(15,23,42,0.28)',selectionFg:'#ffffff',fallbackBg1:'rgba(241,245,249,0.96)',fallbackBg2:'rgba(226,232,240,0.98)',avatarRect:'#ffffff',avatarBorder:'rgba(148,163,184,0.35)',avatarShadow:'rgba(15,23,42,0.12)',avatarGradStop3:'#90cdf4',nameGradientStart:'#0f172a',nameShineStop:'rgba(255,255,255,1.00)'} }
 };
 const THEMES = Object.values(THEMES_CONFIG);
+
+/* Phase 4: 行业预设（中性演示数据，点击一键填入通用名片字段） */
+const INDUSTRY_PRESETS = {
+  reading: {
+    label: '📖 读书会',
+    fields: {
+      fullName: '城市读者俱乐部',
+      titleRole: '发起人与主理人',
+      bio: '每年共读 12 本书，线下沙龙与线上讨论并行。相信阅读是让陌生人互相认识的最好方式。',
+      contact: '微信：readerclub，邮箱：hello@reader.club',
+      signCn: '读书是最好的旅行',
+      signEn: 'Read to travel the world.'
+    }
+  },
+  restaurant: {
+    label: '🍽 本地餐企',
+    fields: {
+      fullName: '林记小馆',
+      titleRole: '主理人 · 主厨',
+      bio: '三年专注本地食材，每周更新菜单。不做网红店，只做街坊邻居愿意带朋友来的家常菜。',
+      contact: '微信：linji168，电话：13800138000，地址：梧桐路 42 号',
+      signCn: '好好吃饭，认真生活',
+      signEn: 'Eat well, live well.'
+    }
+  },
+  business: {
+    label: '🏢 小型企业',
+    fields: {
+      fullName: '林小雨',
+      titleRole: '产品经理 · 产品策略 & 增长',
+      bio: '5年互联网产品经验，擅长从0到1搭建增长闭环。对人性洞察、细节打磨和跨团队协作有执念。',
+      contact: '微信：linyuxiao_pm，邮箱：lin@example.com，作品集：linyuxiao.design',
+      signCn: '让好产品被看见',
+      signEn: 'Build things that matter.'
+    }
+  }
+};
+
+/* Phase 4: 行业预设填充函数 */
+function applyIndustryPreset(key){
+  var preset = INDUSTRY_PRESETS[key];
+  if (!preset) return;
+  Object.keys(preset.fields).forEach(function(id){
+    var el = document.getElementById(id);
+    if (el) el.value = preset.fields[id];
+  });
+  scheduleUpdate();
+}
 
 /* Phase 3: 模板注册表（扩展点） */
 var CARD_TEMPLATES = {};
@@ -601,20 +693,61 @@ function registerTemplate(name, config) {
    职责：维护当前模式、主题、头像数据
    ============================================================ */
 let currentMode = 'oc';
-let currentTheme = {a:'#ff9d5c', b:'#ffd0a8'};
+let currentTheme = {a:'#ff9d5c', b:'#ffd0a8', mode:'dark'};
 let avatarData = null;
 /* ============================================================
    SECTION 5: 渲染逻辑（纯函数，无副作用）
    职责：主题色计算、卡片 DOM 生成、导出 HTML 组装
    ============================================================ */
-function themeInfo(){
-  const a = currentTheme.a, b = currentTheme.b, h = getHue(a);
-  const blobs = [
+function themeInfo(theme){
+  const t = theme || currentTheme;
+  const a = t.a, b = t.b, h = getHue(a);
+  const isLight = t.mode === 'light';
+  const blobs = isLight ? [
+    'rgba('+hslToRgb(h,45,55).join(',')+',0.14)',
+    'rgba('+hslToRgb((h+38)%360,40,52).join(',')+',0.09)',
+    'rgba('+hslToRgb((h+330)%360,35,55).join(',')+',0.07)'
+  ] : [
     'rgba('+hslToRgb(h,85,62).join(',')+',.45)',
     'rgba('+hslToRgb((h+38)%360,80,60).join(',')+',.30)',
     'rgba('+hslToRgb((h+330)%360,75,62).join(',')+',.26)'
   ];
   return {a:a, b:b, blobs:blobs};
+}
+
+/* Phase 4: 生成完整 :root 变量字符串（暗色主题 = 默认值，light 主题注入 palette 覆盖） */
+function getThemeVarValues(theme){
+  const t = theme || currentTheme;
+  const {a,b,blobs} = themeInfo(t);
+  var v = {
+    '--amber':a,'--amber-2':b,
+    '--amber-rgb':hexToRgb(a).join(','),'--amber-2-rgb':hexToRgb(b).join(','),
+    '--blob1':blobs[0],'--blob2':blobs[1],'--blob3':blobs[2]
+  };
+  if (t.mode === 'light' && t.palette) {
+    var p = t.palette;
+    v['--bg-solid']=p.bg; v['--bg-grad-top']=p.bg;
+    v['--text']=p.text; v['--dim']=p.dim;
+    v['--glass-1']=p.glass1; v['--glass-2']=p.glass2; v['--line']=p.line;
+    v['--card-shadow-1']=p.shadow1; v['--card-shadow-2']=p.shadow2;
+    v['--card-highlight']=p.highlight; v['--card-edge']=p.edge;
+    v['--card-border-inset-1']=p.borderInset1; v['--card-border-inset-2']=p.borderInset2;
+    v['--chip-bg']=p.chipBg; v['--chip-line']=p.chipLine;
+    v['--pill-bg1']=p.pillBg1; v['--pill-bg2']=p.pillBg2;
+    v['--pill-border']=p.pillBorder; v['--pill-inset']=p.pillInset;
+    v['--sign-color']=p.signColor; v['--foot-color']=p.footColor;
+    v['--text-selection']=p.selectionFg;
+    v['--fallback-bg1']=p.fallbackBg1; v['--fallback-bg2']=p.fallbackBg2;
+    v['--avatar-rect']=p.avatarRect; v['--avatar-border']=p.avatarBorder;
+    v['--avatar-shadow']=p.avatarShadow; v['--avatar-gradient-stop3']=p.avatarGradStop3;
+    v['--name-gradient-start']=p.nameGradientStart;
+    v['--name-shine-color']=p.nameShineStop;
+  }
+  return v;
+}
+function getRootVarString(theme){
+  var v = getThemeVarValues(theme);
+  return ':root{'+Object.keys(v).map(function(k){return k+':'+v[k];}).join(';')+';}';
 }
 
 /* ============================================================
@@ -646,10 +779,13 @@ function readCfg(){
 function val(id){ var el=document.getElementById(id); return el?el.value:''; }
 
 function placeholder(c){
-  const {a} = themeInfo();
+  const theme = c.theme || currentTheme;
+  const {a} = themeInfo(theme);
   const init = (c.mode==='oc' ? (c.name||c.title) : c.title) || '?';
   const ch = init.charAt(0);
-  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="rgb(11,10,18)"/><text x="100" y="142" font-size="110" font-family="serif" text-anchor="middle" fill="'+a+'">'+esc(ch)+'</text></svg>';
+  var rectFill = 'rgb(11,10,18)';
+  if (theme.palette && theme.palette.avatarRect) rectFill = theme.palette.avatarRect;
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><rect width="200" height="200" fill="'+rectFill+'"/><text x="100" y="142" font-size="110" font-family="serif" text-anchor="middle" fill="'+a+'">'+esc(ch)+'</text></svg>';
   return "<img class='avatar' src='data:image/svg+xml;utf8,"+encodeURIComponent(svg)+"' alt=''>";
 }
 
@@ -688,17 +824,22 @@ function buildCardInner(c, anim){
 function favicon(c,a,b){
   const init = (c.mode==='oc'?(c.name||c.title):c.title)||'?';
   const ch = init.charAt(0);
-  const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='"+b+"'/><stop offset='1' stop-color='"+a+"'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='#0b0a12'/><text x='32' y='46' font-family='serif' font-size='38' font-weight='700' text-anchor='middle' fill='url(#g)'>"+esc(ch)+"</text></svg>";
+  const theme = c.theme || currentTheme;
+  var rectFill = '#0b0a12';
+  if (theme.palette && theme.palette.avatarRect) rectFill = theme.palette.avatarRect;
+  const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='"+b+"'/><stop offset='1' stop-color='"+a+"'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='"+rectFill+"'/>"+
+    "<text x='32' y='46' font-family='serif' font-size='38' font-weight='700' text-anchor='middle' fill='url(#g)'"+">"+esc(ch)+"</text></svg>";
   return "data:image/svg+xml,"+encodeURIComponent(svg);
 }
 
 function buildDoc(c, opts){
-  const {a,b,blobs} = themeInfo();
+  const theme = c.theme || currentTheme;
+  const {a,b,blobs} = themeInfo(theme);
   const inner = buildCardInner(c, opts.animate);
   const titleText = c.mode==='oc' ? (c.title+' · '+c.name) : c.title;
   const sub = c.mode==='oc' ? (c.name||'') : (c.script||'');
   const fav = favicon(c,a,b);
-  const rootVars = ":root{--amber:"+a+";--amber-2:"+b+";--amber-rgb:"+hexToRgb(a).join(',')+";--amber-2-rgb:"+hexToRgb(b).join(',')+";--blob1:"+blobs[0]+";--blob2:"+blobs[1]+";--blob3:"+blobs[2]+";}";
+  const rootVars = getRootVarString(theme);
   // Footer 逻辑
   let footHTML = '';
   if (c.footMode === 'hidden') {
@@ -710,12 +851,13 @@ function buildDoc(c, opts){
   } else {
     footHTML = "<div class='foot'>© "+esc(c.title)+" · "+esc(sub)+"</div>";  // 默认
   }
+  var metaTC = (theme.mode==='light' && theme.palette) ? theme.palette.bg : '#06060b';
   return "<!DOCTYPE html>\n<html lang='zh-CN'>\n<head>\n<meta charset='UTF-8'>\n"+
     "<meta name='viewport' content='width=device-width,initial-scale=1,viewport-fit=cover'>\n"+
-    "<meta name='theme-color' content='#06060b'>\n"+
+    "<meta name='theme-color' content='"+metaTC+"'>\n"+
     "<meta http-equiv='Content-Security-Policy' content=\"default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; frame-ancestors 'none'\">"+
     "<title>"+esc(titleText)+"</title>\n"+
-    "<link rel='icon' href='"+fav+"'>\n<style>\n"+rootVars+"\n"+CARD_CSS+"\n</style>\n</head>\n<body>\n"+
+    "<link rel='icon' href='"+fav+"'>\n<style>\n"+CARD_CSS+"\n"+rootVars+"\n</style>\n</head>\n<body>\n"+
     "<div class='stage' id='stage'>\n  <div class='blob b1'></div>\n  <div class='blob b2'></div>\n  <div class='blob b3'></div>\n"+
     "  <main class='card' id='card'>\n"+inner+"  </main>\n</div>\n"+footHTML+"\n"+
     "<script>"+INTERACT_JS+"<\/script>\n</body>\n</html>";
@@ -733,17 +875,12 @@ function loadPreview(){
 }
 function updatePreview(){
   const c = readCfg();
-  const {a,b,blobs} = themeInfo();
+  const theme = c.theme || currentTheme;
   const doc = preview.contentDocument;
   if(!doc) return;
   const root = doc.documentElement;
-  root.style.setProperty('--amber', a);
-  root.style.setProperty('--amber-2', b);
-  root.style.setProperty('--amber-rgb', hexToRgb(a).join(','));
-  root.style.setProperty('--amber-2-rgb', hexToRgb(b).join(','));
-  root.style.setProperty('--blob1', blobs[0]);
-  root.style.setProperty('--blob2', blobs[1]);
-  root.style.setProperty('--blob3', blobs[2]);
+  var vars = getThemeVarValues(theme);
+  Object.keys(vars).forEach(function(k){ root.style.setProperty(k, vars[k]); });
   const card = doc.getElementById('card');
   if(card) card.innerHTML = buildCardInner(c, false);
 }
@@ -777,9 +914,9 @@ function loadState() {
     var state = JSON.parse(raw);
     // 恢复模式
     if (state.mode) setMode(state.mode);
-    // 恢复主题
+    // 恢复主题（兼容旧 state 无 mode/palette）
     if (state.theme) {
-      currentTheme = state.theme;
+      currentTheme = Object.assign({mode:'dark', palette:null}, state.theme);
       document.getElementById('customColor').value = state.theme.a;
     }
     // 恢复字段
@@ -822,21 +959,35 @@ function setMode(mode){
 
 function buildThemeSwatches(){
   const row = document.getElementById('themeRow');
-  THEMES.forEach(function(t){
-    const s = document.createElement('div');
-    s.className = 'swatch' + (t.a.toLowerCase()===currentTheme.a.toLowerCase()?' active':'');
-    s.style.background = 'linear-gradient(160deg,'+t.b+','+t.a+')';
-    s.title = t.name;
-    s.textContent = t.name.charAt(0);
-    s.addEventListener('click', function(){
-      currentTheme = {a:t.a, b:t.b};
-      document.getElementById('customColor').value = t.a;
-      document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
-      s.classList.add('active');
-      scheduleUpdate();
+  // 分组：dark 先，light 后（商务主题家族），中间加分隔标题
+  var groups = {dark:[], light:[]};
+  THEMES.forEach(function(t){ groups[t.mode||'dark'].push(t); });
+  function renderGroup(themes, label, container){
+    if (label && container) {
+      var lbl = document.createElement('span');
+      lbl.className = 'theme-label';
+      lbl.textContent = label;
+      container.appendChild(lbl);
+    }
+    themes.forEach(function(t){
+      const s = document.createElement('div');
+      s.className = 'swatch' + ((t.mode||'dark') === (currentTheme.mode||'dark') && t.a.toLowerCase()===currentTheme.a.toLowerCase()?' active':'');
+      s.style.background = 'linear-gradient(160deg,'+t.b+','+t.a+')';
+      s.title = t.name + (t.desc ? ' · '+t.desc : '');
+      s.textContent = t.name.charAt(0);
+      s.addEventListener('click', function(){
+        currentTheme = {a:t.a, b:t.b, mode:t.mode, palette:t.palette};
+        document.getElementById('customColor').value = t.a;
+        document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
+        s.classList.add('active');
+        scheduleUpdate();
+      });
+      container.appendChild(s);
     });
-    row.appendChild(s);
-  });
+  }
+  row.innerHTML = '';
+  renderGroup(groups.dark, '液态玻璃', row);
+  renderGroup(groups.light, '商务中性', row);
 }
 
 /* ============================================================
@@ -877,9 +1028,16 @@ function setup(){
 
   // 自定义颜色
   document.getElementById('customColor').addEventListener('input', function(e){
-    currentTheme = {a:e.target.value, b:lighten(e.target.value)};
+    currentTheme = {a:e.target.value, b:lighten(e.target.value), mode: currentTheme.mode || 'dark'};
     document.querySelectorAll('#themeRow .swatch').forEach(function(x){x.classList.remove('active');});
     scheduleUpdate();
+  });
+
+  // Phase 4: 行业预设按钮绑定
+  document.querySelectorAll('#industryRow .btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      applyIndustryPreset(btn.getAttribute('data-industry'));
+    });
   });
 
   // 头像上传
@@ -945,7 +1103,7 @@ function setup(){
     document.getElementById('zodiac').selectedIndex = 3;
     document.getElementById('footMode').value = 'default';
     document.getElementById('footCustom').style.display = 'none';
-    currentTheme = {a:'#ff9d5c', b:'#ffd0a8'};
+    currentTheme = {a:'#ff9d5c', b:'#ffd0a8', mode:'dark'};
     document.getElementById('customColor').value = '#ff9d5c';
     avatarData = null; document.getElementById('avatarThumb').removeAttribute('src');
     document.querySelectorAll('#themeRow .swatch').forEach(function(x,i){ x.classList.toggle('active', i===0); });
@@ -975,7 +1133,7 @@ window.XYIntroCard = {
     THEMES.push(THEMES_CONFIG[name]);
   },
   onCardExport: [],
-  version: '2.0.0-Phase3',
+  version: '2.1.0-Phase4',
   FEATURES: Features
 };
 </script>

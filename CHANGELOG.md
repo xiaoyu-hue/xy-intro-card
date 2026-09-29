@@ -2,6 +2,49 @@
 
 > 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [2.1.0-Phase4] - 2026-09-29
+
+### 新增
+
+- **Phase 4 - 商务中性主题家族**
+  - 扩展 `THEMES_CONFIG` 结构：每套主题新增 `mode`（`'dark'` / `'light'`）和可选 `palette` 字段
+  - 新增 4 套商务中性主题：
+    - **米白·晨雾**（暖米白底 + 灰蓝强调，通用商务名片首选）
+    - **浅灰·云影**（冷浅灰底 + 蓝灰强调，科技/咨询类）
+    - **燕麦·暖调**（奶油色底 + 棕灰强调，文化/餐饮类）
+    - **藏蓝·经典**（纯白底 + 海军蓝强调，金融/法律类最正式）
+  - 新增 `themeInfo(theme)` / `getThemeVarValues(theme)` / `getRootVarString(theme)` 三个函数，支持可选 theme 参数（不再强依赖全局状态）
+  - 卡片 CSS 扩展 30+ 个可覆盖变量（`--bg-solid`、`--glass-*`、`--card-shadow-*`、`--chip-*`、`--pill-*`、`--sign-color`、`--foot-color`、`--avatar-*`、`--name-gradient-start` 等），默认值=原有暗色硬编码值，light 主题通过 palette 覆盖
+  - 导出 HTML 的 `<meta theme-color>` 跟随主题底色（暗色 `#06060b` / 浅色 `#f7f4f0` 等）
+  - 浅色主题 blob 动画：使用同色系低饱和度、低 alpha（0.14/0.09/0.07），保持"克制"感
+  - UI 主题色块分组渲染：液态玻璃（暗色）/ 商务中性（浅色）两组，中间加标题分隔
+  - `placeholder()` / `favicon()` 随主题切换背景填充色
+  - localStorage 状态持久化支持新 `mode` / `palette` 字段，并兼容旧 JSON
+  - 自定义取色器保留当前主题 mode
+
+- **Phase 4 - 行业预设（通用名片模式）**
+  - 新增 3 个中性行业预设按钮：📖 读书会 / 🍽 本地餐企 / 🏢 小型企业
+  - 点击按钮一键填入完整演示数据（姓名、头衔、简介、联系方式、签名）
+  - 预设与主题自由搭配，互不联动
+  - 新增 `INDUSTRY_PRESETS` 常量对象与 `applyIndustryPreset(key)` 函数
+  - 新增测试 7（7 个用例）验证预设数据结构与导出内容
+
+### 测试
+
+- 原有 31 个测试全部通过（回归保护）
+- 新增 20 个测试（共 51 个）：
+  - 测试 4：4 个暗色主题回归 + "不注入浅色变量"断言
+  - 测试 4b：浅色商务主题 palette 完整注入
+  - 测试 4c：暗色主题 meta theme-color 回归
+  - 测试 7：行业预设数据结构验证 + 导出内容验证
+
+### 变更
+
+- API 版本升级为 `2.1.0-Phase4`
+- `buildDoc()` 改为接受 `c.theme` 优先于全局 `currentTheme`，便于多主题并发测试
+
+---
+
 ## [未发布]
 
 ### 新增

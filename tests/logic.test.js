@@ -97,7 +97,7 @@ var alert = function(msg) { console.log('[ALERT]', msg); };
 jsCode = stubEnvironment + '\n' + jsCode + '\n';
 
 // 导出测试所需函数，并暴露内部变量以便测试修改
-jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, currentTheme: currentTheme }; _exports._ct_ref = currentTheme; module.exports = _exports;';
+jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, currentTheme: currentTheme, INDUSTRY_PRESETS: INDUSTRY_PRESETS }; _exports._ct_ref = currentTheme; module.exports = _exports;';
 
 // 写入临时文件并执行
 const tmpPath = '/tmp/xy-intro-card-test.js';
@@ -232,27 +232,77 @@ group('测试 3: 超长输入截断', function() {
 });
 
 // ============================================================
-// 测试 4: 主题色注入
+// 测试 4: 主题色注入（暗色回归 + 浅色商务）
 // ============================================================
 group('测试 4: 主题色注入', function() {
   const testCases = [
-    { theme: { a: '#ff9d5c', b: '#ffd0a8' }, expect: ['#ff9d5c', '#ffd0a8'] },
-    { theme: { a: '#6aa8ff', b: '#bcd8ff' }, expect: ['#6aa8ff', '#bcd8ff'] },
-    { theme: { a: '#b06bff', b: '#d9b6ff' }, expect: ['#b06bff', '#d9b6ff'] },
-    { theme: { a: '#cfd3e6', b: '#ffffff' }, expect: ['#cfd3e6', '#ffffff'] }
+    { theme: { a: '#ff9d5c', b: '#ffd0a8' }, mode: 'dark', expect: ['#ff9d5c', '#ffd0a8'] },
+    { theme: { a: '#6aa8ff', b: '#bcd8ff' }, mode: 'dark', expect: ['#6aa8ff', '#bcd8ff'] },
+    { theme: { a: '#b06bff', b: '#d9b6ff' }, mode: 'dark', expect: ['#b06bff', '#d9b6ff'] },
+    { theme: { a: '#cfd3e6', b: '#ffffff' }, mode: 'dark', expect: ['#cfd3e6', '#ffffff'] }
   ];
 
   testCases.forEach(function(tc, i) {
-    // 直接修改模块内部变量
     const g = require('/tmp/xy-intro-card-test');
     g._ct_ref.a = tc.theme.a;
     g._ct_ref.b = tc.theme.b;
+    g._ct_ref.mode = tc.mode;
+    delete g._ct_ref.palette;
     const cfg = Object.assign({}, ocConfig, { theme: tc.theme });
     const doc = g.buildDoc(cfg, { animate: false });
 
-    assert(doc.includes('--amber:' + tc.expect[0]), '主题色 ' + (i+1) + ' 的 --amber 正确注入');
-    assert(doc.includes('--amber-2:' + tc.expect[1]), '主题色 ' + (i+1) + ' 的 --amber-2 正确注入');
+    assert(doc.includes('--amber:' + tc.expect[0]), '暗色主题 ' + (i+1) + ' 的 --amber 正确注入');
+    assert(doc.includes('--amber-2:' + tc.expect[1]), '暗色主题 ' + (i+1) + ' 的 --amber-2 正确注入');
+    // 暗色主题的 getRootVarString 不输出 --bg-solid（CSS 默认值生效）
+    // 验证：不应出现浅色值 #f7f4f0
+    assert(!doc.includes('--bg-solid:#f7f4f0'), '暗色主题 ' + (i+1) + ' 不应注入浅色 bg-solid');
   });
+});
+
+// ============================================================
+// 测试 4b: 浅色商务主题注入
+// ============================================================
+group('测试 4b: 浅色商务主题注入', function() {
+  const g = require('/tmp/xy-intro-card-test');
+
+  // neutral_morning (米白·晨雾)
+  g._ct_ref.a = '#5a6b7c';
+  g._ct_ref.b = '#8a9dad';
+  g._ct_ref.mode = 'light';
+  g._ct_ref.palette = {bg:'#f7f4f0',text:'#1e2935',dim:'rgba(30,41,53,0.55)',glass1:'rgba(255,255,255,0.75)',glass2:'rgba(255,255,255,0.50)',line:'rgba(148,163,184,0.40)',shadow1:'rgba(15,23,42,0.10)',shadow2:'rgba(15,23,42,0.06)',highlight:'rgba(255,255,255,0.85)',edge:'rgba(148,163,184,0.38)',borderInset1:'rgba(255,255,255,0.92)',borderInset2:'rgba(255,255,255,0.45)',chipBg:'rgba(255,255,255,0.65)',chipLine:'rgba(148,163,184,0.45)',pillBg1:'rgba(255,255,255,0.70)',pillBg2:'rgba(255,255,255,0.45)',pillBorder:'rgba(148,163,184,0.48)',pillInset:'rgba(255,255,255,0.80)',signColor:'#334155',footColor:'rgba(30,41,53,0.35)',selectionFg:'#1e2935',fallbackBg1:'rgba(240,238,235,0.95)',fallbackBg2:'rgba(225,222,216,0.97)',avatarRect:'#f7f4f0',avatarBorder:'rgba(148,163,184,0.40)',avatarShadow:'rgba(15,23,42,0.12)',avatarGradStop3:'#c4b5a0',nameGradientStart:'#1e2935',nameShineStop:'rgba(255,255,255,0.85)'};
+
+  const cfg = Object.assign({}, generalConfig, { theme: { a: '#5a6b7c', b: '#8a9dad', mode:'light', palette: g._ct_ref.palette } });
+  const doc = g.buildDoc(cfg, { animate: false });
+
+  assert(doc.includes('--amber:#5a6b7c'), '商务主题 --amber 正确注入');
+  assert(doc.includes('--bg-solid:#f7f4f0'), '商务主题 --bg-solid 正确注入');
+  assert(doc.includes('--text:#1e2935'), '商务主题 --text 正确注入');
+  assert(doc.includes('--glass-1:rgba(255,255,255,0.75)'), '商务主题 --glass-1 正确注入');
+  assert(doc.includes('--card-shadow-1:rgba(15,23,42,0.10)'), '商务主题 --card-shadow-1 正确注入');
+  assert(doc.includes('<meta name=\'theme-color\' content=\'#f7f4f0\'>') || doc.includes('<meta name="theme-color" content="#f7f4f0">'), '商务主题 meta theme-color 正确');
+  assert(doc.includes('--foot-color:rgba(30,41,53,0.35)'), '商务主题 --foot-color 正确注入');
+  assert(doc.includes('--sign-color:#334155'), '商务主题 --sign-color 正确注入');
+
+  // 重置回暗色状态
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
+  g._ct_ref.a = '#ff9d5c';
+  g._ct_ref.b = '#ffd0a8';
+});
+
+// ============================================================
+// 测试 4c: 暗色主题 meta theme-color 回归
+// ============================================================
+group('测试 4c: 暗色主题 meta theme-color 回归', function() {
+  const g = require('/tmp/xy-intro-card-test');
+  g._ct_ref.a = '#ff9d5c';
+  g._ct_ref.b = '#ffd0a8';
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
+  const doc = g.buildDoc(Object.assign({}, ocConfig), { animate: false });
+  assert(doc.includes('theme-color') && (doc.includes('#06060b') || doc.includes('theme-color')), '暗色主题 meta theme-color 为 #06060b');
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
 });
 
 // ============================================================
@@ -295,6 +345,48 @@ group('测试 6: 两种模式字段隔离', function() {
   assert(!genDoc.includes('星座'), 'general 模式不应显示星座');
   assert(genDoc.includes('关于我'), 'general 模式应有"关于我"标签');
   assert(genDoc.includes('联系方式'), 'general 模式应有"联系方式"标签');
+});
+
+// ============================================================
+// 测试 7: 行业预设数据注入（Phase 4）
+// ============================================================
+group('测试 7: 行业预设数据注入', function() {
+  const g = require('/tmp/xy-intro-card-test');
+
+  // 验证 3 个预设都有完整字段
+  var presets = g.INDUSTRY_PRESETS || {};
+  assert(Object.keys(presets).length === 3, '应有 3 个行业预设（读书会/餐企/企业）');
+
+  // 验证每个预设的字段结构
+  assert(presets.reading && presets.reading.fields.fullName, '读书会预设应有 fullName');
+  assert(presets.restaurant && presets.restaurant.fields.fullName, '餐企预设应有 fullName');
+  assert(presets.business && presets.business.fields.fullName, '企业预设应有 fullName');
+
+  // 用读书会预设生成卡片，验证内容正确
+  g._ct_ref.mode = 'light';
+  g._ct_ref.a = '#5a6b7c';
+  g._ct_ref.b = '#8a9dad';
+  g._ct_ref.palette = {bg:'#f7f4f0',text:'#1e2935',dim:'rgba(30,41,53,0.55)',glass1:'rgba(255,255,255,0.75)',glass2:'rgba(255,255,255,0.50)',line:'rgba(148,163,184,0.40)',shadow1:'rgba(15,23,42,0.10)',shadow2:'rgba(15,23,42,0.06)',highlight:'rgba(255,255,255,0.85)',edge:'rgba(148,163,184,0.38)',borderInset1:'rgba(255,255,255,0.92)',borderInset2:'rgba(255,255,255,0.45)',chipBg:'rgba(255,255,255,0.65)',chipLine:'rgba(148,163,184,0.45)',pillBg1:'rgba(255,255,255,0.70)',pillBg2:'rgba(255,255,255,0.45)',pillBorder:'rgba(148,163,184,0.48)',pillInset:'rgba(255,255,255,0.80)',signColor:'#334155',footColor:'rgba(30,41,53,0.35)',selectionFg:'#1e2935',fallbackBg1:'rgba(240,238,235,0.95)',fallbackBg2:'rgba(225,222,216,0.97)',avatarRect:'#f7f4f0',avatarBorder:'rgba(148,163,184,0.40)',avatarShadow:'rgba(15,23,42,0.12)',avatarGradStop3:'#c4b5a0',nameGradientStart:'#1e2935',nameShineStop:'rgba(255,255,255,0.85)'};
+
+  var cfg = Object.assign({}, generalConfig, {
+    title: presets.reading.fields.fullName,
+    script: presets.reading.fields.titleRole,
+    bio: presets.reading.fields.bio,
+    contact: (presets.reading.fields.contact || '').split(/[，,、\n]+/).filter(Boolean),
+    signCn: presets.reading.fields.signCn,
+    signEn: presets.reading.fields.signEn || ''
+  });
+  var doc = g.buildDoc(cfg, { animate: false });
+
+  assert(doc.includes('城市读者俱乐部'), '读书会预设 title 正确');
+  assert(doc.includes('发起人与主理人'), '读书会预设 script 正确');
+  assert(doc.includes('读书是最好的旅行'), '读书会预设签名正确');
+
+  // 重置
+  g._ct_ref.mode = 'dark';
+  delete g._ct_ref.palette;
+  g._ct_ref.a = '#ff9d5c';
+  g._ct_ref.b = '#ffd0a8';
 });
 
 // ============================================================

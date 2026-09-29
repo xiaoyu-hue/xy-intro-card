@@ -34,8 +34,43 @@
 
 - 所有字符串在 `buildDoc` 内经 `esc()` 转义后入 DOM，防止 XSS。
 - 空字段在卡片上自动隐藏对应区块，不留空白占位。
-- 头像：`avatarData`（压缩后 base64）可选；缺省时按 `title`/`name` 首字生成 SVG 占位。
-- 主题色独立于字段，由 `currentTheme = { a, b }` 控制，不参与内容数据。
+- 头像：`avatarData`（压缩后 base64）可选；缺省时按 `title`/`name` 首字生成 SVG 占位，占位 SVG 背景色随主题切换（暗色 `rgb(11,10,18)` / 亮色商务主题取 `palette.avatarRect`）。
+- 主题色独立于字段，由 `currentTheme` 对象控制，不参与内容数据。
+
+## 主题配置（Theme）
+
+主题对象结构（自 Phase 4）：
+
+```js
+{
+  a: '#ff9d5c',            // 主色（强调色）
+  b: '#ffd0a8',            // 辅色（高亮色，由 lighten(a) 推导）
+  mode: 'dark',            // 'dark' | 'light'，决定 blob 透明度与文字方向
+  palette: {               // 仅 light 模式使用，暗色主题不传此字段
+    bg: '#f7f4f0',         // 页面背景色（--bg-solid）
+    text: '#1e2935',       // 正文文字色
+    dim: 'rgba(30,41,53,0.55)', // 次要文字色
+    glass1: 'rgba(255,255,255,0.75)',  // 毛玻璃层 1（不透明度高）
+    glass2: 'rgba(255,255,255,0.50)',  // 毛玻璃层 2
+    line: 'rgba(148,163,184,0.40)',    // 分割线色
+    shadow1: 'rgba(15,23,42,0.10)',    // 卡片外阴影 1
+    shadow2: 'rgba(15,23,42,0.06)',    // 卡片外阴影 2
+    highlight: 'rgba(255,255,255,0.85)', // 卡片高光
+    edge: 'rgba(148,163,184,0.38)',     // 卡片底部边缘线
+    // ... 详见 THEMES_CONFIG 中任意一套 light 主题的 palette 字段
+  }
+}
+```
+
+现有 8 套预设主题存放在 `THEMES_CONFIG`，用户也可通过 `window.XYIntroCard.addTheme(name, a, b)` 动态追加（新主题默认 `mode: 'dark'`，需手动补 `mode` 和 `palette` 才能走亮色路径）。
+
+## 行业预设（Industry Presets）
+
+行业预设仅作用于「通用名片」模式（`mode: "general"`），点击按钮后调用 `applyIndustryPreset(key)` 将预设文案填入表单字段，然后触发 `scheduleUpdate()` 刷新预览。
+
+- 预设与主题**互不联动**：点预设不改变主题，换主题也不清除已填字段。
+- 预设数据存放在 `INDUSTRY_PRESETS` 常量对象中，结构为 `{ [key]: { label, fields: { fullName, titleRole, bio, contact, signCn, signEn } } }`。
+- 可按需扩展：在 `INDUSTRY_PRESETS` 中添加新 key 并对应 UI 按钮即可，无需改核心逻辑。
 
 ## 与 xy-club 的数据对照
 

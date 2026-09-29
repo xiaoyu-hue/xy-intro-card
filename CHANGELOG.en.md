@@ -2,6 +2,50 @@
 
 > This project follows [Semantic Versioning](https://semver.org/). Format per [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.1.0-Phase4] - 2026-09-29
+
+### Added
+
+- **Phase 4 – Neutral business theme family**
+  - Extended `THEMES_CONFIG`: each theme now supports optional `mode` (`'dark'` / `'light'`) and `palette` fields
+  - 4 new neutral business themes:
+    - **米白·晨雾** (warm off-white + slate blue accent, general business use)
+    - **浅灰·云影** (cool light grey + blue-grey accent, tech/consulting)
+    - **燕麦·暖调** (cream + warm brown-grey, culture/dining)
+    - **藏蓝·经典** (pure white + navy, finance/legal, most formal)
+  - New functions `themeInfo(theme)` / `getThemeVarValues(theme)` / `getRootVarString(theme)` – all accept an optional theme parameter (no longer strictly tied to global `currentTheme`)
+  - Extended card CSS with 30+ theme-overridable custom properties (background, text, glass, shadows, chips, pills, sign, footer, avatar, name gradient); defaults equal original dark values
+  - Exported HTML `<meta theme-color>` now follows the active theme's background colour
+  - Light themes use desaturated, low-alpha blobs (alpha 0.14 / 0.09 / 0.07) for a restrained look
+  - Theme swatch UI groups: liquid glass (dark) / neutral business (light), with label dividers
+  - `placeholder()` / `favicon()` now switch SVG background colour per theme
+  - localStorage persistence supports new `mode` / `palette` fields with backward compatibility
+  - Custom colour picker preserves current theme mode
+  - API version bumped to `2.1.0-Phase4`
+  - `buildDoc()` now reads `c.theme` before falling back to global `currentTheme`
+
+- **Phase 4 – Industry presets (general card mode)**
+  - 3 new preset buttons: 📖 读书会 / 🍽 本地餐企 / 🏢 小型企业
+  - One-click fill of complete demo data (name, title, bio, contact, signature)
+  - Presets and themes are independent – clicking a preset does not lock the theme
+  - New `INDUSTRY_PRESETS` constant object and `applyIndustryPreset(key)` function
+  - New test group 7 (7 cases) validating preset structure and exported content
+
+### Tests
+
+- All 31 existing tests still pass (regression protection)
+- 20 new test cases added (51 total):
+  - Test 4: dark theme regression + "no light vars injected" assertions
+  - Test 4b: light business theme palette full injection verification
+  - Test 4c: dark theme `meta theme-color` regression
+  - Test 7: industry preset data structure + exported content validation
+
+### Changed
+
+- API version: `2.1.0-Phase3` → `2.1.0-Phase4`
+
+---
+
 ## [Unreleased]
 
 ### Added

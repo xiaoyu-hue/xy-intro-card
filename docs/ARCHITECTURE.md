@@ -46,23 +46,30 @@
 
 ## 4. 主题色计算（themeInfo）
 
-- 主题色由 `currentTheme = { a, b }`（主色 + 浅色）驱动。
-- `themeInfo()` 据此推导：
+- 主题色由 `currentTheme = { a, b, mode?, palette? }` 驱动（`mode` 默认为 `'dark'`，`palette` 仅在 `mode === 'light'` 时使用）。
+- `themeInfo(theme)` 据此推导：
   - `--amber` / `--amber-2` 注入卡片；
-  - 光斑（blob）颜色由 `getHue(a)` 取主色色相，配合 `lighten()` / `hslToRgb()` 生成半透明 RGBA；
-  - 文字深浅按主色亮度自动选择，保证对比度。
-- 四套预设（落日金 / 深海蓝 / 极光紫 / 晨雾白）与 `xy-club` 四套主题同名同色，便于两个项目配套时视觉统一。
+  - 光斑（blob）颜色：
+    - **暗色主题**：取主色色相，高饱和（80%~85%）、中高亮度（60%~62%）、alpha 0.45/0.30/0.26，形成活跃的三色漂移；
+    - **亮色主题**：同色系低饱和（35%~45%）、中亮度（52%~55%）、alpha 0.14/0.09/0.07，保持存在但不突兀；
+  - 若主题含 `palette` 对象，`getThemeVarValues(theme)` 生成 30+ 个 CSS 自定义属性（背景、文字、玻璃、阴影、芯片、药丸、签名、页脚、头像、渐变起始色等），通过 `getRootVarString()` 拼成 `:root{...}` 覆盖块；
+  - 导出 HTML 中，`rootVars` 紧跟在 `CARD_CSS` 之后，保证自定义属性覆盖默认暗色值。
+- 四套暗色预设（落日金 / 深海蓝 / 极光紫 / 晨雾白）与 `xy-club` 四套主题同名同色，便于两个项目配套时视觉统一。
+- 四套亮色商务预设（米白·晨雾 / 浅灰·云影 / 燕麦·暖调 / 藏蓝·经典）面向非俱乐部用户，色调克制、中性。
 
 ## 5. 导出逻辑（buildDoc）
 
 `buildDoc(cfg, { animate })` 产出一份**独立可运行的 HTML 卡片**：
 
-1. 取 `CARD_CSS`（卡片样式常量）；
-2. 注入主题变量与光斑颜色；
-3. 按 `cfg.mode`（oc / general）选择字段模板；
-4. 转义所有用户输入（`esc()`）防 XSS；
-5. 头像：有上传数据用压缩后的 base64，否则生成「主题色 + 首字」SVG 占位；
-6. 拼接 `<!DOCTYPE html>` + `<style>` + 卡片 DOM + 内联动画脚本（脚本中 `</script>` 写作 `<\/script>` 避免提前闭合）。
+1. 取 `cfg.theme || currentTheme` 作为主题源（而非直接读全局变量），支持多主题并发测试与插件扩展；
+2. 调用 `getRootVarString(theme)` 生成完整 `:root` 变量覆盖块（暗色主题为空覆盖，亮色主题注入 palette 全套变量）；
+3. CSS 拼装顺序：`CARD_CSS`（默认值） → `rootVars`（主题覆盖），保证亮色主题变量在 cascade 中后写入、优先级更高；
+4. 注入 `<meta name='theme-color' content='...'>`，暗色 `#06060b`，亮色跟随 `palette.bg`；
+5. 按 `cfg.mode`（oc / general）选择字段模板；
+6. 转义所有用户输入（`esc()`）防 XSS；
+7. 头像：有上传数据用压缩后的 base64，否则生成「主题色 + 首字」SVG 占位，占位 SVG 背景色随主题切换（暗色 `rgb(11,10,18)` / 亮色 `palette.avatarRect`）；
+8. favicon SVG 同样按主题切换 `rect fill` 色；
+9. 拼接 `<!DOCTYPE html>` + `<style>` + 卡片 DOM + 内联动画脚本（脚本中 `</script>` 写作 `<\/script>` 避免提前闭合）。
 
 导出卡**不依赖生成器本文件**，可单独发给任何人、任意浏览器打开。
 

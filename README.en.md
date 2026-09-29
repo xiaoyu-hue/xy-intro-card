@@ -32,7 +32,7 @@
 
 - **Zero-dependency single file**: fonts, icons and avatars are inlined; opens offline; a shared card is a standalone file.
 - **Two field modes**: "Character Card" (name · age · zodiac · skills · signature, for club members / companions) and "General Card" (name · title · bio · contact) — switchable.
-- **Theme aligned with XY site**: Sunset Gold / Ocean Blue / Aurora Purple / Morning Mist — same names and colors as `xy-club`'s four themes.
+- **Themes aligned with XY site**: 4 liquid-glass dark themes (Sunset Gold / Ocean Blue / Aurora Purple / Morning Mist) + 4 neutral business light themes (米白·晨雾 / 浅灰·云影 / 燕麦·暖调 / 藏蓝·经典), total 8 themes
 - **Avatar upload + auto-compress**: uploads are shrunk to 512px via `<canvas>`, so large images never freeze the UI.
 - **Live preview + one-click download**: fill on the left, see the phone preview on the right, export a standalone HTML card.
 - **Mobile-first + performance restraint**: multi-breakpoint, frame-rate auto-degrade, respects `prefers-reduced-motion`, fewer glass layers on mobile.
@@ -57,15 +57,16 @@ No install, no server:
 
 1. Double-click `个人介绍卡生成器.html` (open in any modern browser), or just use the **online** link above
 2. Switch "Character Card / General Card" at the top
-3. Fill content, upload avatar, pick a theme — preview updates live
-4. Click "下载这张卡片" (Download this card) to get a standalone HTML you can send to anyone
+3. In General Card mode, pick an industry preset (📖 读书会 / 🍽 本地餐企 / 🏢 小型企业) to auto-fill demo data, or type your own
+4. Fill content, upload avatar, pick a theme (8 available: 4 liquid-glass dark + 4 neutral business light) — preview updates live
+5. Click "下载这张卡片" (Download this card) to get a standalone HTML you can send to anyone
 
 <a id="reuse"></a>
 
 ## ♻️ Reuse for any club / team
 
 1. Open the generator, replace "XY俱乐部" with your club / team name
-2. Change name, age / title, skills / contact, signature and theme
+2. In General Card mode, choose from 3 industry presets or fill in your own data; switch any of the 8 themes
 3. Repeat export per member to get a uniformly styled set of cards
 
 ## 📚 Documentation
@@ -102,7 +103,7 @@ This project ships **no third-party runtime dependencies**: no npm packages, no 
 | [Canvas API](https://developer.mozilla.org/docs/Web/API/Canvas_API) | Compresses uploaded avatars to 512px so large images never freeze the UI |
 | [Blob / `URL.createObjectURL`](https://developer.mozilla.org/docs/Web/API/URL/createObjectURL) | Exports the generated card as a standalone HTML file |
 | CSS [`backdrop-filter`](https://developer.mozilla.org/docs/Web/CSS/backdrop-filter) | Liquid-glass frosted effect |
-| CSS custom properties and [`color-mix()`](https://developer.mozilla.org/docs/Web/CSS/color_value/color-mix) | Computes and switches the four themes (Sunset Gold / Ocean Blue / Aurora Purple / Morning Mist) |
+| CSS custom properties and [`color-mix()`](https://developer.mozilla.org/docs/Web/CSS/color_value/color-mix) | Computes and switches the 8 themes (4 liquid-glass dark + 4 neutral business light) |
 | [`prefers-reduced-motion`](https://developer.mozilla.org/docs/Web/CSS/@media/prefers-reduced-motion) | Honors the system "reduce motion" accessibility setting |
 
 ### Visual & design inspiration
