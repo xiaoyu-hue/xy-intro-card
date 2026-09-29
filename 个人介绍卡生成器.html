@@ -799,10 +799,10 @@ function readCfg(){
 }
 function val(id){ var el=document.getElementById(id); return el?el.value:''; }
 
-function placeholder(c){
-  const theme = c.theme || AppState.theme;
+function placeholder(cfg){
+  const theme = cfg.theme || AppState.theme;
   const {a} = themeInfo(theme);
-  const init = (c.mode==='oc' ? (c.name||c.title) : c.title) || '?';
+  const init = (cfg.mode==='oc' ? (cfg.name||cfg.title) : cfg.title) || '?';
   const ch = init.charAt(0);
   var rectFill = 'rgb(11,10,18)';
   if (theme.palette && theme.palette.avatarRect) rectFill = theme.palette.avatarRect;
@@ -810,24 +810,24 @@ function placeholder(c){
   return "<img class='avatar' src='data:image/svg+xml;utf8,"+encodeURIComponent(svg)+"' alt=''>";
 }
 
-function buildCardInner(c, anim){
-  const rv = anim ? ' reveal' : '';
-  const av = c.avatar ? "<img class='avatar' src='"+c.avatar+"' alt=''>" : placeholder(c);
+function buildCardInner(cfg, animate){
+  const rv = animate ? ' reveal' : '';
+  const av = cfg.avatar ? "<img class='avatar' src='"+cfg.avatar+"' alt=''>" : placeholder(cfg);
   let infoHTML, label1, label2, chips;
-  if(c.mode==='oc'){
-    const z = ZODIAC[c.zodiac]||'';
-    infoHTML = esc(c.name)+"<span class='dot'>·</span><span class='age'>"+esc(c.age)+"</span><span class='dot'>·</span>"+esc(c.zodiac)+"<span class='zodiac' aria-hidden='true'>"+z+"</span>";
-    label1='个人信息'; label2='游戏技能'; chips=(c.skills||[]).map(function(s){return "<span class='skill'>"+esc(s)+"</span>";}).join('');
+  if(cfg.mode==='oc'){
+    const z = ZODIAC[cfg.zodiac]||'';
+    infoHTML = esc(cfg.name)+"<span class='dot'>·</span><span class='age'>"+esc(cfg.age)+"</span><span class='dot'>·</span>"+esc(cfg.zodiac)+"<span class='zodiac' aria-hidden='true'>"+z+"</span>";
+    label1='个人信息'; label2='游戏技能'; chips=(cfg.skills||[]).map(function(s){return "<span class='skill'>"+esc(s)+"</span>";}).join('');
   } else {
-    infoHTML = esc(c.bio||'');
-    label1='关于我'; label2='联系方式'; chips=(c.contact||[]).map(function(s){return "<span class='skill'>"+esc(s)+"</span>";}).join('');
+    infoHTML = esc(cfg.bio||'');
+    label1='关于我'; label2='联系方式'; chips=(cfg.contact||[]).map(function(s){return "<span class='skill'>"+esc(s)+"</span>";}).join('');
   }
   let signHTML='';
-  if(c.signCn || c.signEn){
-    signHTML = esc(c.signCn||'') + (c.signEn ? "<br><span class='script'>"+esc(c.signEn)+"</span>" : '');
+  if(cfg.signCn || cfg.signEn){
+    signHTML = esc(cfg.signCn||'') + (cfg.signEn ? "<br><span class='script'>"+esc(cfg.signEn)+"</span>" : '');
   }
-  const titleText = esc(c.title);
-  const scriptText = esc(c.script||'');
+  const titleText = esc(cfg.title);
+  const scriptText = esc(cfg.script||'');
   return "\n"+
     "    <div class='avatar-wrap"+rv+"'>\n      <div class='avatar-ring'></div>\n      "+av+"\n    </div>\n"+
     "    <h1 class='club-name"+rv+"' data-text='"+titleText+"'>"+titleText+"</h1>\n"+
@@ -842,10 +842,10 @@ function buildCardInner(c, anim){
     "    <div class='ripple-layer' id='ripples'></div>\n";
 }
 
-function favicon(c,a,b){
-  const init = (c.mode==='oc'?(c.name||c.title):c.title)||'?';
+function favicon(cfg,a,b){
+  const init = (cfg.mode==='oc'?(cfg.name||cfg.title):cfg.title)||'?';
   const ch = init.charAt(0);
-  const theme = c.theme || AppState.theme;
+  const theme = cfg.theme || AppState.theme;
   var rectFill = '#0b0a12';
   if (theme.palette && theme.palette.avatarRect) rectFill = theme.palette.avatarRect;
   const svg = "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><linearGradient id='g' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='"+b+"'/><stop offset='1' stop-color='"+a+"'/></linearGradient></defs><rect width='64' height='64' rx='16' fill='"+rectFill+"'/>"+
@@ -853,24 +853,24 @@ function favicon(c,a,b){
   return "data:image/svg+xml,"+encodeURIComponent(svg);
 }
 
-function buildDoc(c, opts){
-  const theme = c.theme || AppState.theme;
+function buildDoc(cfg, opts){
+  const theme = cfg.theme || AppState.theme;
   const {a,b,blobs} = themeInfo(theme);
-  const inner = buildCardInner(c, opts.animate);
-  const titleText = c.mode==='oc' ? (c.title+' · '+c.name) : c.title;
-  const sub = c.mode==='oc' ? (c.name||'') : (c.script||'');
-  const fav = favicon(c,a,b);
+  const inner = buildCardInner(cfg, opts.animate);
+  const titleText = cfg.mode==='oc' ? (cfg.title+' · '+cfg.name) : cfg.title;
+  const sub = cfg.mode==='oc' ? (cfg.name||'') : (cfg.script||'');
+  const fav = favicon(cfg,a,b);
   const rootVars = getRootVarString(theme);
   // Footer 逻辑
   let footHTML = '';
-  if (c.footMode === 'hidden') {
+  if (cfg.footMode === 'hidden') {
     footHTML = '';  // 隐藏
-  } else if (c.footMode === 'custom' && c.footCustom) {
-    footHTML = "<div class='foot'>"+esc(c.footCustom)+"</div>";  // 自定义文案
-  } else if (c.footMode === 'produce') {
-    footHTML = "<div class='foot'>"+esc(c.title)+"出品 · "+esc(sub)+"专属</div>";  // 俱乐部出品
+  } else if (cfg.footMode === 'custom' && cfg.footCustom) {
+    footHTML = "<div class='foot'>"+esc(cfg.footCustom)+"</div>";  // 自定义文案
+  } else if (cfg.footMode === 'produce') {
+    footHTML = "<div class='foot'>"+esc(cfg.title)+"出品 · "+esc(sub)+"专属</div>";  // 俱乐部出品
   } else {
-    footHTML = "<div class='foot'>© "+esc(c.title)+" · "+esc(sub)+"</div>";  // 默认
+    footHTML = "<div class='foot'>© "+esc(cfg.title)+" · "+esc(sub)+"</div>";  // 默认
   }
   var metaTC = (theme.mode==='light' && theme.palette) ? theme.palette.bg : '#06060b';
   return "<!DOCTYPE html>\n<html lang='zh-CN'>\n<head>\n<meta charset='UTF-8'>\n"+
@@ -903,7 +903,7 @@ function updatePreview(){
   var vars = getThemeVarValues(theme);
   Object.keys(vars).forEach(function(k){ root.style.setProperty(k, vars[k]); });
   const card = doc.getElementById('card');
-  if(card) card.innerHTML = buildCardInner(c, false);
+  if(card) card.innerHTML = buildCardInner(cfg, false);
 }
 function scheduleUpdate(){ clearTimeout(AppState.timer); AppState.timer = setTimeout(function(){ updatePreview(); saveState(); }, 220); }
 
