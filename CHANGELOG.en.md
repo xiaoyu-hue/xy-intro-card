@@ -2,6 +2,70 @@
 
 > This project follows [Semantic Versioning](https://semver.org/). Format per [Keep a Changelog](https://keepachangelog.com/).
 
+## [3.0.2-Phase5] - 2026-09-29
+
+### fix
+
+- **Version comment correction**
+  - Code comment L229 version `v3.0.1` → `v3.0.2`
+  - API.md documentation version `v2.1.0-Phase4` → `v3.0.2`
+
+- **Review reports cleanup**
+  - Removed tracked review report files from git (ARCHITECTURE_REVIEW.md, CODE_REVIEW.md, COMPREHENSIVE_REVIEW.md, DECISION_REVIEW.md, FIX_SUMMARY.md)
+  - Updated `.gitignore` to prevent future accidental commits
+
+### refactor
+
+- **Top-level variable standardization**
+  - `var Features` → `const Features`
+  - `var CARD_TEMPLATES` → `const CARD_TEMPLATES`
+  - `var AppState` → `const AppState`
+  - `var STORAGE_KEY` → `const STORAGE_KEY`
+  - `var STORAGE_VERSION` → `const STORAGE_VERSION`
+  - Reduced var usage from 49 to 45 occurrences
+
+- **bindEvents() function splitting**
+  - Split into 8 sub-functions: `bindModeEvents()`, `bindFormEvents()`, `bindCustomColorEvents()`, `bindIndustryPresetEvents()`, `bindAvatarEvents()`, `bindDownloadEvents()`, `bindFooterEvents()`, `bindResetEvents()`
+  - Improved code readability and maintainability
+
+### feat
+
+- **Theme swatch keyboard navigation**
+  - Added `tabindex="0"`, `role="button"`, `aria-label` attributes to all theme swatches
+  - Support Enter/Space key to trigger theme switching
+  - Screen readers can identify theme swatches as interactive buttons
+
+- **Error message accessibility enhancement**
+  - Added `aria-describedby` association for input error messages
+  - Screen readers can automatically read error messages
+  - New `errorId` unique identifier to avoid duplication
+
+### chore
+
+- **Added code style tool configurations**
+  - Added `.eslintrc.json`: basic ESLint rules (no-unused-vars, semi, quotes, indent)
+  - Added `.prettierrc`: unified code formatting (single quotes, 2-space indent, no trailing commas)
+
+### docs
+
+- **Documentation internationalization**
+  - Added `docs/FIELDS.en.md`: field specification English translation
+
+- **Documentation system improvement**
+  - Updated `GLOBAL.md`: added document submission rules (prohibit pushing review reports)
+  - Updated `.gitignore`: added review report ignore rules
+
+### test
+
+- Tests maintained at 102 cases, all passing ✅
+- build-check.sh all passed ✅
+
+### breaking
+
+- None (fully backward compatible)
+
+---
+
 ## [2.2.0] - 2026-09-29
 
 ### refactor

@@ -1,6 +1,70 @@
 # 更新日志（CHANGELOG）
 
-> 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
+> 本项目遵循 [语义化版本](https://semver.org/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
+
+## [3.0.2-Phase5] - 2026-09-29
+
+### fix
+
+- **版本注释修正**
+  - 代码注释 L229 版本号 `v3.0.1` → `v3.0.2`
+  - API.md 文档版本号 `v2.1.0-Phase4` → `v3.0.2`
+
+- **审查报告清理**
+  - 从 git 追踪中移除已推送的审查报告文件（ARCHITECTURE_REVIEW.md、CODE_REVIEW.md、COMPREHENSIVE_REVIEW.md、DECISION_REVIEW.md、FIX_SUMMARY.md）
+  - 更新 `.gitignore` 防止未来误提交审查报告
+
+### refactor
+
+- **顶层变量规范化**
+  - `var Features` → `const Features`
+  - `var CARD_TEMPLATES` → `const CARD_TEMPLATES`
+  - `var AppState` → `const AppState`
+  - `var STORAGE_KEY` → `const STORAGE_KEY`
+  - `var STORAGE_VERSION` → `const STORAGE_VERSION`
+  - var 使用量从 49 处降至 45 处
+
+- **bindEvents() 函数拆分**
+  - 拆分为 8 个子函数：`bindModeEvents()`、`bindFormEvents()`、`bindCustomColorEvents()`、`bindIndustryPresetEvents()`、`bindAvatarEvents()`、`bindDownloadEvents()`、`bindFooterEvents()`、`bindResetEvents()`
+  - 提升代码可读性和可维护性
+
+### feat
+
+- **主题色块键盘导航**
+  - 为所有主题色块添加 `tabindex="0"`、`role="button"`、`aria-label` 属性
+  - 支持 Enter/Space 键触发主题切换
+  - 屏幕阅读器可识别主题色块为可交互按钮
+
+- **错误提示无障碍增强**
+  - 为输入错误提示添加 `aria-describedby` 关联
+  - 屏幕阅读器可自动读出错误信息
+  - 新增 `errorId` 唯一标识，避免重复
+
+### chore
+
+- **添加代码规范工具配置**
+  - 新增 `.eslintrc.json`：基础 ESLint 规则（no-unused-vars、semi、quotes、indent）
+  - 新增 `.prettierrc`：统一代码格式（单引号、2空格缩进、无尾逗号）
+
+### docs
+
+- **文档英文化**
+  - 新增 `docs/FIELDS.en.md`：字段规范英文翻译
+
+- **文档体系完善**
+  - 更新 `GLOBAL.md`：添加文档提交规则（禁止推送审查报告）
+  - 更新 `.gitignore`：添加审查报告忽略规则
+
+### test
+
+- 测试保持 102 项全部通过 ✅
+- build-check.sh 全部通过 ✅
+
+### breaking
+
+- 无（完全向后兼容）
+
+---
 
 ## [2.2.0] - 2026-09-29
 
