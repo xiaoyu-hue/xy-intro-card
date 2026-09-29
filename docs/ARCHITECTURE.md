@@ -27,16 +27,16 @@
 | Section | 职责 | 关键函数/变量 |
 |---|---|---|
 | SECTION 1 | 工具函数 | `esc()`, `splitCsv()`, `hexToRgb()`, `lighten()`, `getHue()` |
-| SECTION 1.5 | 特性检测 | `Features` 对象 |
-| SECTION 2 | 常量配置 | `ZODIAC`, `THEMES_CONFIG`, `THEMES`, `registerTemplate()` |
-| SECTION 3 | 状态管理 | `currentMode`, `currentTheme`, `avatarData` |
-| SECTION 4 | 配置读取 | `readCfg()` |
-| SECTION 5 | 渲染逻辑 | `themeInfo()`, `buildCardInner()`, `buildDoc()` |
-| SECTION 6 | 预览更新 | `loadPreview()`, `updatePreview()`, `scheduleUpdate()`, `setMode()` |
-| SECTION 6.5 | 本地持久化 | `saveState()`, `loadState()` |
-| SECTION 6.6 | 输入校验 | `addInputFeedback()` |
-| SECTION 7 | 交互绑定 | `setup()` |
-| SECTION 8 | 全局 API | `window.XYIntroCard` |
+| SECTION 2 | 特性检测 | `Features` 对象 |
+| SECTION 3 | 常量配置 | `ZODIAC`, `THEMES_CONFIG`, `THEMES`, `registerTemplate()` |
+| SECTION 4 | 状态管理 | `AppState.mode`, `AppState.theme`, `AppState.avatar`（Phase 5 引入状态管理器） |
+| SECTION 5 | 配置读取 | `readCfg()` |
+| SECTION 6 | 渲染逻辑 | `themeInfo(theme)`, `buildCardInner()`, `buildDoc(c, opts)` |
+| SECTION 7 | 预览更新 | `loadPreview()`, `updatePreview()`, `scheduleUpdate()`, `setMode()` |
+| SECTION 8 | 本地持久化 | `saveState()`, `loadState()` |
+| SECTION 9 | 输入校验 | `addInputFeedback()` |
+| SECTION 10 | 交互绑定 | `setup()` |
+| SECTION 11 | 全局 API | `window.XYIntroCard` |
 
 ## 3. 渲染机制（实时预览）
 

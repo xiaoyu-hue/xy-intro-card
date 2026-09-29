@@ -2,6 +2,49 @@
 
 > This project follows [Semantic Versioning](https://semver.org/). Format per [Keep a Changelog](https://keepachangelog.com/).
 
+## [2.2.0] - 2026-09-29
+
+### refactor
+
+- **Architecture optimization - SECTION numbering unified**
+  - Unified SECTION numbering to 1-11 sequential (original numbering had gaps: 1→1.5→2→3→4→5→6→6.5→6.6→7→8)
+  - Improved code readability and maintainability
+
+- **Introduced AppState state manager**
+  - Merged scattered global variables (`currentMode`, `currentTheme`, `avatarData`, `updateTimer`, `preview`) into `AppState` object
+  - Centralized state management for easier debugging and serialization
+  - All references updated to `AppState.mode/theme/avatar/timer/preview`
+
+- **localStorage version migration**
+  - Added `STORAGE_VERSION = 'v1'` version constant
+  - `saveState()` writes version number on save
+  - `loadState()` detects version and handles legacy data downgrade
+  - Legacy data without `mode`/`palette` fields auto-completed
+
+- **Theme swatch matching optimization**
+  - Assigned unique `key` to each theme (based on `THEMES_CONFIG` key)
+  - `active` state judgment uses `key` comparison to avoid misjudgment when color values are same
+
+### test
+
+- Tests increased from 51 to 70 (all green)
+- Added test 8: blob color verification (dark high saturation vs light low transparency)
+- Added test 9: internal function export verification (`getThemeVarValues`, `THEMES_CONFIG`)
+- Added test 10: localStorage version migration verification
+
+### docs
+
+- Added `docs/ARCHITECTURE_REVIEW.md` (architecture review report)
+- Updated `docs/ARCHITECTURE.md` (added AppState explanation)
+- Updated `docs/TESTING.md` (test count 51→70)
+- Updated `docs/CODE_REVIEW.md` (reflect all fixes)
+
+### breaking
+
+- None (fully backward compatible)
+
+---
+
 ## [2.1.0-Phase4] - 2026-09-29
 
 ### Added

@@ -2,6 +2,49 @@
 
 > 本项目遵循 [语义化版本](https://semver.org/lang/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [2.2.0] - 2026-09-29
+
+### refactor
+
+- **架构优化 - SECTION 编号统一**
+  - 统一 SECTION 编号为 1-11 连续编号（原编号跳跃：1→1.5→2→3→4→5→6→6.5→6.6→7→8）
+  - 提升代码可读性和可维护性
+
+- **引入 AppState 状态管理器**
+  - 将分散的全局变量（`currentMode`, `currentTheme`, `avatarData`, `updateTimer`, `preview`）合并为 `AppState` 对象
+  - 集中管理应用状态，便于调试和序列化
+  - 所有引用已更新为 `AppState.mode/theme/avatar/timer/preview`
+
+- **localStorage 版本迁移**
+  - 新增 `STORAGE_VERSION = 'v1'` 版本号常量
+  - `saveState()` 保存时写入版本号
+  - `loadState()` 检测版本并降级处理旧数据
+  - 旧数据无 `mode`/`palette` 字段时自动补全
+
+- **主题色块匹配优化**
+  - 为每个主题分配唯一 `key`（基于 `THEMES_CONFIG` 的 key）
+  - `active` 状态判断改用 `key` 比较，避免色值相同时误判
+
+### test
+
+- 测试从 51 增加到 70 项（全绿）
+- 新增测试 8：blob 颜色验证（暗色高饱和 vs 亮色低透明）
+- 新增测试 9：内部函数导出验证（`getThemeVarValues`, `THEMES_CONFIG`）
+- 新增测试 10：localStorage 版本迁移验证
+
+### docs
+
+- 新增 `docs/ARCHITECTURE_REVIEW.md`（架构审查报告）
+- 更新 `docs/ARCHITECTURE.md`（添加 AppState 说明）
+- 更新 `docs/TESTING.md`（测试数量 51→70）
+- 更新 `docs/CODE_REVIEW.md`（反映所有修复）
+
+### breaking
+
+- 无（完全向后兼容）
+
+---
+
 ## [2.1.0-Phase4] - 2026-09-29
 
 ### 新增

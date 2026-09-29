@@ -17,7 +17,7 @@
 node tests/logic.test.js
 ```
 
-### 测试覆盖（51 个用例）
+### 测试覆盖（70 个用例）
 
 #### 测试 1: XSS 防护（6 项）
 - script 标签应被转义为 `&lt;script&gt;`
@@ -71,6 +71,19 @@ node tests/logic.test.js
 - 应有 3 个行业预设对象（读书会/餐企/企业）
 - 各预设均有 `fields.fullName`
 - 读书会预设导出后 title、script、签名均正确
+
+#### 测试 8: blob 颜色验证（6 项）
+- 暗色主题 blob alpha 应为 .45/.30/.26（高饱和活跃色）
+- 亮色主题 blob alpha 应为 0.14/0.09/0.07（低透明克制色）
+
+#### 测试 9: 内部函数导出验证（6 项）
+- `getThemeVarValues` 应为函数
+- `THEMES_CONFIG` 应包含 4 套亮色商务主题
+- `getThemeVarValues` 应返回正确的 CSS 变量值
+
+#### 测试 10: localStorage 版本迁移（4 项）
+- 旧版无 mode/palette 时应降级为 dark/null
+- 新版有 mode/palette 时应保留
 
 ## 3. 构建检查（scripts/build-check.sh）
 
