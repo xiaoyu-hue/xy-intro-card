@@ -205,4 +205,4 @@ window.XYIntroCard.onCardExport.push(function(html) {
 
 ---
 
-*文档版本：v2.1.0-Phase4*
+*文档版本：v3.0.2*
