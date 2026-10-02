@@ -124,4 +124,11 @@
 
 ## 📄 许可证
 
-[MIT](LICENSE) © 2026 xiaoyu-hue
+本项目采用**按部分划分**的许可结构：
+
+| 部分 | 适用许可证 |
+|------|-----------|
+| 源代码与工具（`index.html`、示例 HTML、`scripts/`、`tests/`、配置） | [MIT](LICENSE) © 2026 xiaoyu-hue —— 可自由使用、修改与商用，保留版权声明即可 |
+| 文档（`docs/` 下的文档，以及本 README） | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.zh-Hans) —— 可自由使用与商用，注明作者为 xiaoyu-hue 即可 |
+
+> **为什么分开？** MIT 是为软件设计的许可协议，它默认允许他人自由商用且不强制署名——这对代码是合适的，但对原创文档来说，作者更希望保留署名权。所以代码走 MIT，文档走 CC BY 4.0（同样允许商用，只要求署名）。

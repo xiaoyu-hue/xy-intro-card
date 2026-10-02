@@ -117,4 +117,11 @@ The liquid-glass language is shared with [`xy-club`](https://github.com/xiaoyu-h
 
 ## 📄 License
 
-[MIT](LICENSE) © 2026 xiaoyu-hue
+This project uses a **split licensing** structure:
+
+| Part | License |
+|------|---------|
+| Source code & tooling (`index.html`, sample HTML files, `scripts/`, `tests/`, config) | [MIT](LICENSE) © 2026 xiaoyu-hue — free to use, modify, and commercialize, provided the copyright notice is retained |
+| Documentation (the markdown files under `docs/`, plus this README) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — free to use and commercialize, with attribution to xiaoyu-hue |
+
+> **Why split?** MIT is designed for software: it permits unrestricted commercial use and does not require attribution. That is fine for code, but for original written documentation the author prefers to keep the attribution requirement. So the code stays MIT while the docs use CC BY 4.0 (also commercially usable, only attribution required).
