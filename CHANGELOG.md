@@ -2,6 +2,13 @@
 
 > 本项目遵循 [语义化版本](https://semver.org/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [3.1.1] - 2026-10-27
+
+### docs
+
+- **LICENSE-DOCS 重写为七要件结构**：版权行 / `SPDX-License-Identifier: CC-BY-4.0` / 覆盖范围 / 授权与条件 / 署名示例 / 第三方除外 / 官方全文。本仓库代码与示例页面为 MIT，说明性文档（README、API.md、docs/）为 CC BY 4.0。
+- 说明范围时点名根目录的示例页面（`示例-*.html`、`个人介绍卡生成器.html` 等）属代码/示例，随 MIT；避免「文档」与「示例」两种口径互相打架。
+
 ## [3.0.2-Phase5] - 2026-09-29
 
 ### fix
