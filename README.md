@@ -18,7 +18,7 @@
 
 <br>
 
-**[🔗 在线体验（GitHub Pages）](https://xiaoyu-hue.github.io/xy-intro-card/)** · **[📖 快速开始](#quick-start)** · **[♻️ 复用为任意俱乐部](#reuse)** · **[🙏 致谢与依赖](#credits)**
+**[🔗 在线体验（GitHub Pages）](https://xiaoyu-hue.github.io/xy-intro-card/)** · **[📖 快速开始](#quick-start)** · **[♻️ 复用为任意俱乐部](#reuse)** · **[🏷 更新日志](CHANGELOG.md)** · **[🚀 Releases](https://github.com/xiaoyu-hue/xy-intro-card/releases)**
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat-square&logo=html5&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=flat-square&logo=css3&logoColor=white)

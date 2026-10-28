@@ -10,7 +10,7 @@
 | [DEPLOY.md](DEPLOY.md) | 分发与托管：单文件分发 / 静态托管 |
 | [TESTING.md](TESTING.md) | 验证方式：浏览器手测 + 无头截图 + Node 逻辑校验 |
 | [DOC_SYNC.md](DOC_SYNC.md) | 文档与版本同步规范：唯一真源、同步清单、SemVer、发布前验证 |
-| [DECISION_REVIEW.md](DECISION_REVIEW.md) | 决策审查清单：决策三问 + 五层追问（发版 / 不可逆操作前必过） |
+| [DECISION_REVIEW.md](DECISION_REVIEW.md) | 决策审查清单：发版 / 改默认行为 / 改导出产物 / 不可逆操作前必过（7 问） |
 | [adr/README.md](adr/README.md) | 架构决策记录（ADR）索引与状态约定 |
 | [AUTHOR.md](AUTHOR.md) · [AUTHOR.en.md](AUTHOR.en.md) | 关于作者（中 / 英） |
 

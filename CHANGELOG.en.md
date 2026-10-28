@@ -1,6 +1,40 @@
 # Changelog
 
 > This project follows [Semantic Versioning](https://semver.org/). Format per [Keep a Changelog](https://keepachangelog.com/).
+> Full Chinese history (single source of truth): [`CHANGELOG.md`](CHANGELOG.md).
+
+## [3.2.0] - 2026-10-28
+
+### feat
+
+- **PNG export**: turn the card into a 1080px-wide, content-height-adaptive tall image via Canvas 2D — zero dependencies, no html2canvas / foreignObject. Core is the pure function `renderCardPNG(cfg, done)`.
+- **Root URL is now `index.html`**: the site root opens the app directly; the old `个人介绍卡生成器.html` path keeps a redirect page so existing links don't 404.
+- **Defaults to the generic profile card**: no more XY-club demo data on first load; header copy is product-neutral.
+- **Share metadata**: `description`, `theme-color`, `og:*`, `twitter:card`.
+
+### fix
+
+- **Live preview restored (critical)**: `updatePreview()` referenced an undefined `cfg`; since v3.1.0 the preview stopped updating after first load. Extracted `applyPreview(doc, c)` plus a visible error message instead of silent failure.
+- **Escaping gap**: `esc()` did not escape single quotes while card titles were rendered inside single-quoted attributes.
+- The three demo cards were re-exported with the fixed `buildDoc`.
+
+### test
+
+- Temp files moved to `os.tmpdir()` (fixes EACCES on Windows / Android); summary line moved after all cases.
+- New test 16 (preview) and test 17 (PNG rendering); assertions 109 → 129. New `tests/smoke.test.js` runs `setup()` in a DOM stub to catch boot-time crashes.
+- Tightened 6 always-true assertions.
+
+### docs
+
+- Added `docs/DECISION_REVIEW.md`, fixing 7 broken links in README / AGENTS / CONTRIBUTING / docs.
+- `ARCHITECTURE` §5.1 documents the PNG renderer; `TESTING` rewritten; `README` (zh/en) repositioned; version unified to 3.2.0.
+
+## [3.1.1] - 2026-10-27
+
+### docs
+
+- Rewrote `LICENSE-DOCS` into a seven-part structure (copyright / SPDX / scope / grant / attribution example / third-party exclusions / full text). Code and demo pages are MIT; explanatory docs are CC BY 4.0.
+
 
 ## [3.0.2-Phase5] - 2026-09-29
 

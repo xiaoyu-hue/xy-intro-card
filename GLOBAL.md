@@ -36,7 +36,7 @@ curl -s -H "Authorization: token ${GITHUBTOKEN}" \
 ### 正确的发版流程
 
 ```bash
-cd /var/minis/workspace/xy-intro-card-review
+cd xy-intro-card   # 仓库根目录
 
 # 1. 跑测试和构建检查
 node tests/logic.test.js
@@ -99,6 +99,9 @@ v2.0.0 - 系统级响应式与极致流畅度提升
 v3.0.0 - 商务主题家族 + 行业预设 + 架构优化（正确 commit: 552f16b）
 v3.0.1 - 修复 buildThemeSwatches bug
 v3.0.2 - 全面修复：代码拆分 + 测试补充 + ARIA完善
+v3.1.0 - 亮色商务主题家族收尾 + 文档体系
+v3.1.1 - LICENSE-DOCS 七要件重写（纯文档版）
+v3.2.0 - PNG 导出 + 首页改 index.html + 默认通用名片 + 预览崩溃修复（2026-10-28）
 ```
 
 ---
