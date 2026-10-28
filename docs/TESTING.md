@@ -6,7 +6,8 @@
 
 | 层 | 方法 | 依赖 | 说明 |
 |---|---|---|---|
-| 逻辑校验 | Node 提取 `<script>` + DOM 桩，跑 `buildDoc` | Node 18+ | 验证导出 HTML 结构 / 字段 / 主题注入 / XSS 防护 |
+| 逻辑校验 | Node 提取 `<script>` + DOM 桩，跑 `buildDoc` / `applyPreview` / `renderCardPNG` | Node 18+ | 验证导出 HTML 结构 / 字段 / 主题注入 / XSS 防护 / PNG 排版 |
+| 初始化冒烟 | `tests/smoke.test.js` 在 DOM 桩里执行 `setup()` | Node 18+ | 抓「打开就崩」的初始化异常、默认模式 |
 | 构建检查 | `scripts/build-check.sh` | grep, wc | 验证文件完整性、HTML 结构、CSP 安全策略 |
 | CI 门禁 | `.github/workflows/ci.yml` | GitHub Actions | 每次 push/PR 自动运行上述两层 |
 
@@ -17,73 +18,39 @@
 node tests/logic.test.js
 ```
 
-### 测试覆盖（70 个用例）
+### 测试覆盖（19 组 / 129 条断言，以实际输出为准）
 
-#### 测试 1: XSS 防护（6 项）
-- script 标签应被转义为 `&lt;script&gt;`
-- img 标签应被转义为 `&lt;img`
-- 引号应被转义为 `&quot;`
-- alert 文本应保留（作为纯文本）
-- 正常文本应保留
-- 正常文本应保留（第二组）
+| # | 组 | 关注的回归 |
+|---|---|---|
+| 1 | XSS 防护 | script / img / 引号 / 单引号被转义 |
+| 2 | 空字段处理 | 全空也输出合法 HTML |
+| 3 | 超长输入截断 | 输出体积可控 |
+| 4 | 暗色主题注入 | 4 套暗色主题的 `--amber` 等变量 |
+| 4b | 浅色商务主题注入 | 4 套亮色主题的 30+ palette 变量 |
+| 4c | meta theme-color | 暗/亮主题下的 `<meta name=theme-color>` |
+| 5 | Footer 模式 | default / produce / custom / hidden |
+| 6 | 两种模式字段隔离 | 人设卡字段不串进通用名片 |
+| 7 | 行业预设 | 读书会 / 餐企 / 小企业数据注入 |
+| 8 | blob 颜色 | 暗/亮主题光斑 alpha |
+| 9 | 内部函数导出 | 桩环境里 exports 完整 |
+| 10 | localStorage 版本迁移 | 旧 key / 旧版本数据兼容 |
+| 11 | 头像上传与处理 | 有头像用 base64、无头像用占位图 |
+| 12 | 下载功能 | 导出的 HTML 独立可运行 |
+| 13 | 响应式断点 | 断点与容器查询存在性 |
+| 14 | 动画降级与性能 | `prefers-reduced-motion`、lite 模式 |
+| 15 | 键盘导航 | tabindex / role / Enter / Space |
+| 16 | 预览更新 `applyPreview` | 预览写入与失败兜底（防 v3.1.0 回归） |
+| 17 | PNG 导出渲染 | 1080 宽、无 NaN/undefined、长简介撑高 |
 
-#### 测试 2: 空字段处理（3 项）
-- 空字段不崩溃，输出有效 HTML
-- 应包含 DOCTYPE
-- 应包含 html 标签
+> 13~15 组属于「源码结构检查」（grep 生成器源码），能挡住误删，但不等于行为正确；行为验证主要靠 1~12、16、17 组。
 
-#### 测试 3: 超长输入截断（2 项）
-- 输出长度应在合理范围内（<50KB）
-- 长文本应被保留（或截断）
+### 2.1 初始化冒烟测试（tests/smoke.test.js）
 
-#### 测试 4: 暗色主题注入（8 项）
-- 落日金：--amber 和 --amber-2 正确注入
-- 深海蓝：--amber 和 --amber-2 正确注入
-- 极光紫：--amber 和 --amber-2 正确注入
-- 晨雾白：--amber 和 --amber-2 正确注入
-- 以上 4 套暗色主题均不应注入浅色专属变量（如 --bg-solid: #f7f4f0）
+```bash
+node tests/smoke.test.js
+```
 
-#### 测试 4b: 亮色商务主题注入（8 项）
-- 米白·晨雾（neutral_morning）palette 全套变量正确注入：
-  `--amber`、`--bg-solid`、`--text`、`--glass-1`、`--card-shadow-1`、
-  `meta theme-color`、`--foot-color`、`--sign-color`
-
-#### 测试 4c: 暗色 meta theme-color 回归（1 项）
-- 暗色主题导出卡的 `<meta theme-color>` 应为 `#06060b`
-
-#### 测试 5: Footer 模式（4 项）
-- default 模式应包含 ©
-- produce 模式应包含「出品」
-- custom 模式应包含自定义文案
-- hidden 模式不应显示 footer
-
-#### 测试 6: 两种模式字段隔离（8 项）
-- oc 模式不应有"关于我"标签
-- oc 模式不应有"联系方式"标签
-- oc 模式应有"个人信息"标签
-- oc 模式应有"游戏技能"标签
-- general 模式不应显示年龄
-- general 模式不应显示星座
-- general 模式应有"关于我"标签
-- general 模式应有"联系方式"标签
-
-#### 测试 7: 行业预设数据注入（7 项）
-- 应有 3 个行业预设对象（读书会/餐企/企业）
-- 各预设均有 `fields.fullName`
-- 读书会预设导出后 title、script、签名均正确
-
-#### 测试 8: blob 颜色验证（6 项）
-- 暗色主题 blob alpha 应为 .45/.30/.26（高饱和活跃色）
-- 亮色主题 blob alpha 应为 0.14/0.09/0.07（低透明克制色）
-
-#### 测试 9: 内部函数导出验证（6 项）
-- `getThemeVarValues` 应为函数
-- `THEMES_CONFIG` 应包含 4 套亮色商务主题
-- `getThemeVarValues` 应返回正确的 CSS 变量值
-
-#### 测试 10: localStorage 版本迁移（4 项）
-- 旧版无 mode/palette 时应降级为 dark/null
-- 新版有 mode/palette 时应保留
+在最小 DOM 桩里**完整执行 `setup()`**（loadState → initFormFields → bindEvents → startPreview），用于抓「页面一打开就崩」的初始化期 ReferenceError / TypeError——v3.1.0 的预览 bug 正属此类，逻辑测试因为把 `setup();` 移除而没抓到。顺带断言默认模式是「通用名片」。
 
 ## 3. 构建检查（scripts/build-check.sh）
 
@@ -118,11 +85,12 @@ Jobs：
 
 ### 提交前检查
 ```bash
-# 运行完整检查
+# 运行完整检查（含初始化冒烟）
 sh scripts/build-check.sh
 
 # 或单独运行
 node tests/logic.test.js
+node tests/smoke.test.js
 sh scripts/build-check.sh
 ```
 

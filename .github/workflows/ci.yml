@@ -34,6 +34,9 @@ jobs:
       - name: 运行测试
         run: node tests/logic.test.js
 
+      - name: 初始化冒烟测试（防 setup 崩溃回归）
+        run: node tests/smoke.test.js
+
   lint:
     name: 基础 Lint
     runs-on: ubuntu-latest
