@@ -18,7 +18,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 以下内容**不适用**本许可：
 
-- **源代码与构建配置** —— 适用仓库根目录 [`LICENSE`](./LICENSE)（MIT 许可证），范围：`index.html`、`个人介绍卡生成器.html`、`XY俱乐部-小鱼.html`、`示例-*.html`、`scripts/`、`tests/`、`.eslintrc.json`、`.prettierrc`、`.github/`；
+- **源代码与构建配置** —— 适用仓库根目录 [`LICENSE`](./LICENSE)（MIT 许可证），范围：`index.html`、`个人介绍卡生成器.html`（旧地址跳转页）、`XY俱乐部-小鱼.html`、`示例-*.html`、`scripts/`、`tests/`、`.eslintrc.json`、`.prettierrc`、`.github/`；
 - **第三方组件与素材** —— 依赖与素材的版权归各自权利人（见 `package.json` 与上游项目），本仓库未复制其源代码；
 - **本作品中引用的第三方内容** —— 见第四节。
 

@@ -181,7 +181,7 @@ The following functions are exposed in test environments but not recommended for
 ## 5. Usage Example
 
 ```html
-<script src="个人介绍卡生成器.html"></script>
+<script src="index.html"></script>
 <script>
   // Add custom theme
   window.XYIntroCard.addTheme('my-brand', {

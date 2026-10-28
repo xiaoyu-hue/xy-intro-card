@@ -8,13 +8,13 @@
 
 **English · [中文](./README.md)**
 
-# 🪪 XY Personal Intro Card Toolkit
+# 🪪 Personal Intro Card Generator
 
-> A **reusable personal-intro card generator**: usable by any club / team — fill in content and get a card. Zero dependencies, works offline.
+> Fill in a few lines and get a **shareable intro card** in 3 minutes. Zero dependencies, works offline, exports as an image or a standalone web page.
 
 `XY` is the naming prefix of the author's project series. This project and [`xy-club`](https://github.com/xiaoyu-hue/xy-club) (a club website template) are **two reusable tools in the same family** — the former makes personal intro cards for members, the latter hosts the whole club site; both share a liquid-glass visual language and can be used together.
 
-> ⚠️ **"XY俱乐部" (XY Club) is only a default demo case, not an exclusive brand.** Swap the demo content for any club / team and the tool logic is unchanged.
+> Opens in "General profile card" mode (name · title · bio · contact) by default; switch to "Persona card" (name · age · zodiac · skills · signature) in one click. `XY` is just the author's project-series prefix — swap everything to your own club / team.
 
 <br>
 
@@ -30,11 +30,11 @@
 
 ## ✨ Features
 
-- **Zero-dependency single file**: fonts, icons and avatars are inlined; opens offline; a shared card is a standalone file.
+- **Zero-dependency single file**: icons and avatars are inlined, fonts use system fallbacks ([ADR-0002](docs/adr/0002-drop-embedded-font.md)); opens offline; a shared card is a standalone file.
 - **Two field modes**: "Character Card" (name · age · zodiac · skills · signature, for club members / companions) and "General Card" (name · title · bio · contact) — switchable.
 - **Themes aligned with XY site**: 4 liquid-glass dark themes (Sunset Gold / Ocean Blue / Aurora Purple / Morning Mist) + 4 neutral business light themes (米白·晨雾 / 浅灰·云影 / 燕麦·暖调 / 藏蓝·经典), total 8 themes
 - **Avatar upload + auto-compress**: uploads are shrunk to 512px via `<canvas>`, so large images never freeze the UI.
-- **Live preview + one-click download**: fill on the left, see the phone preview on the right, export a standalone HTML card.
+- **Live preview + two exports**: fill on the left, see the phone preview on the right; **Export PNG** gives a 1080px-wide tall image for WeChat / social posts, **Download card (HTML)** gives a standalone offline web page.
 - **Mobile-first + performance restraint**: multi-breakpoint, frame-rate auto-degrade, respects `prefers-reduced-motion`, fewer glass layers on mobile.
 - **Auto-save & restore**: localStorage persistence prevents data loss on page refresh.
 - **Keyboard accessible**: full Tab-key navigation with visible focus indicators.
@@ -55,11 +55,11 @@ Open **[https://xiaoyu-hue.github.io/xy-intro-card/](https://xiaoyu-hue.github.i
 
 No install, no server:
 
-1. Double-click `个人介绍卡生成器.html` (open in any modern browser), or just use the **online** link above
+1. Double-click `index.html` (open in any modern browser), or just use the **online** link above
 2. Switch "Character Card / General Card" at the top
 3. In General Card mode, pick an industry preset (📖 读书会 / 🍽 本地餐企 / 🏢 小型企业) to auto-fill demo data, or type your own
 4. Fill content, upload avatar, pick a theme (8 available: 4 liquid-glass dark + 4 neutral business light) — preview updates live
-5. Click "下载这张卡片" (Download this card) to get a standalone HTML you can send to anyone
+5. Export either way: **Export PNG** for an image you can post directly, or **Download card (HTML)** for a standalone page that opens offline
 
 <a id="reuse"></a>
 

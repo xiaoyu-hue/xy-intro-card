@@ -21,10 +21,11 @@
 // ============================================================
 
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
 // 读取主 HTML 文件
-const htmlPath = path.join(__dirname, '..', '个人介绍卡生成器.html');
+const htmlPath = path.join(__dirname, '..', 'index.html');
 const htmlContent = fs.readFileSync(htmlPath, 'utf8');
 
 // 提取 script 内容
@@ -41,6 +42,42 @@ jsCode = jsCode.replace(/setup\(\);/g, '');
 
 // 桩环境
 const stubEnvironment = `
+var __ops = [];
+function __ctx2d() {
+  var c = {
+    font: '400 16px sans-serif', fillStyle: '#000', strokeStyle: '#000',
+    lineWidth: 1, globalAlpha: 1, textAlign: 'left', textBaseline: 'alphabetic',
+    _rec: function(name, args) {
+      __ops.push({ name: name, args: Array.prototype.slice.call(args), fill: c.fillStyle, stroke: c.strokeStyle });
+    },
+    save: function() { c._rec('save', arguments); },
+    restore: function() { c._rec('restore', arguments); },
+    beginPath: function() { c._rec('beginPath', arguments); },
+    closePath: function() { c._rec('closePath', arguments); },
+    moveTo: function() { c._rec('moveTo', arguments); },
+    lineTo: function() { c._rec('lineTo', arguments); },
+    arcTo: function() { c._rec('arcTo', arguments); },
+    arc: function() { c._rec('arc', arguments); },
+    rect: function() { c._rec('rect', arguments); },
+    clip: function() { c._rec('clip', arguments); },
+    fill: function() { c._rec('fill', arguments); },
+    stroke: function() { c._rec('stroke', arguments); },
+    fillRect: function() { c._rec('fillRect', arguments); },
+    fillText: function(text, x, y) { c._rec('fillText', [text, x, y]); },
+    drawImage: function() { c._rec('drawImage', arguments); },
+    measureText: function(text) {
+      var m = /(\d+)px/.exec(c.font); var size = m ? Number(m[1]) : 16;
+      var w = 0; String(text).split('').forEach(function(ch) {
+        w += /[\u4e00-\u9fa5]/.test(ch) ? size : size * 0.55;
+      });
+      return { width: w };
+    },
+    createLinearGradient: function() { return { addColorStop: function() {} }; },
+    createRadialGradient: function() { return { addColorStop: function() {} }; }
+  };
+  return c;
+}
+
 var document = {
   getElementById: function() { return null; },
   querySelectorAll: function() { return []; },
@@ -62,6 +99,11 @@ var document = {
       textContent: '',
       value: ''
     };
+    if (tag === 'canvas') {
+      el.width = 0; el.height = 0; el._ctx = null;
+      el.getContext = function() { if (!el._ctx) el._ctx = __ctx2d(); return el._ctx; };
+      el.toBlob = function(cb) { cb({ size: 1024, type: 'image/png' }); };
+    }
     return el;
   },
   body: {
@@ -97,14 +139,14 @@ var alert = function(msg) { console.log('[ALERT]', msg); };
 jsCode = stubEnvironment + '\n' + jsCode + '\n';
 
 // 导出测试所需函数，并暴露内部变量以便测试修改
-jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, AppState: AppState, INDUSTRY_PRESETS: INDUSTRY_PRESETS, getThemeVarValues: getThemeVarValues, THEMES_CONFIG: THEMES_CONFIG, placeholder: placeholder }; _exports._ct_ref = AppState.theme; module.exports = _exports;';
+jsCode += '\nvar _exports = { buildDoc: buildDoc, readCfg: readCfg, esc: esc, themeInfo: themeInfo, AppState: AppState, INDUSTRY_PRESETS: INDUSTRY_PRESETS, getThemeVarValues: getThemeVarValues, THEMES_CONFIG: THEMES_CONFIG, placeholder: placeholder, applyPreview: applyPreview, renderCardPNG: renderCardPNG, pngPalette: pngPalette }; _exports._ct_ref = AppState.theme; _exports.__ops = __ops; module.exports = _exports;';
 
 // 写入临时文件并执行
-const tmpPath = '/tmp/xy-intro-card-test.js';
-fs.writeFileSync(tmpPath, jsCode);
+const TMP = path.join(os.tmpdir(), 'xy-intro-card-test-' + process.pid + '.js');
+fs.writeFileSync(TMP, jsCode);
 
 try {
-  require(tmpPath);
+  require(TMP);
 } catch (e) {
   console.error('❌ 脚本加载失败:', e.message);
   process.exit(1);
@@ -175,7 +217,7 @@ group('测试 1: XSS 防护', function() {
     signCn: '<div onclick="alert(1)">click me</div>'
   });
 
-  const doc = require('/tmp/xy-intro-card-test').buildDoc(xssConfig, { animate: false });
+  const doc = require(TMP).buildDoc(xssConfig, { animate: false });
 
   // 检查转义后的实体（而不是原始标签）
   assert(doc.includes('&lt;script&gt;'), 'script 标签应被转义为 &lt;script&gt;');
@@ -184,7 +226,7 @@ group('测试 1: XSS 防护', function() {
   assert(doc.includes('alert'), 'alert 文本应保留（作为纯文本）');
   // 正常文本应保留 - 使用正常配置测试
   const normalConfig = Object.assign({}, ocConfig, { title: '正常测试俱乐部', name: '测试用户' });
-  const normalDoc = require('/tmp/xy-intro-card-test').buildDoc(normalConfig, { animate: false });
+  const normalDoc = require(TMP).buildDoc(normalConfig, { animate: false });
   assert(normalDoc.includes('正常测试俱乐部'), '正常文本应保留');
   assert(normalDoc.includes('测试用户'), '正常文本应保留');
 });
@@ -204,11 +246,11 @@ group('测试 2: 空字段处理', function() {
 
   // 不应抛出异常
   assert(function() {
-    const doc = require('/tmp/xy-intro-card-test').buildDoc(emptyConfig, { animate: false });
+    const doc = require(TMP).buildDoc(emptyConfig, { animate: false });
     return typeof doc === 'string' && doc.length > 0;
   }(), '空字段不崩溃，输出有效HTML');
 
-  const doc = require('/tmp/xy-intro-card-test').buildDoc(emptyConfig, { animate: false });
+  const doc = require(TMP).buildDoc(emptyConfig, { animate: false });
   assert(doc.includes('<!DOCTYPE html>'), '应包含 DOCTYPE');
   assert(doc.includes('<html'), '应包含 html 标签');
 });
@@ -223,7 +265,7 @@ group('测试 3: 超长输入截断', function() {
     name: 'C'.repeat(100)
   });
 
-  const doc = require('/tmp/xy-intro-card-test').buildDoc(longConfig, { animate: false });
+  const doc = require(TMP).buildDoc(longConfig, { animate: false });
 
   // readCfg 中有 slice(0, 50) 等截断，但测试直接传 config
   // 验证输出不溢出合理范围
@@ -243,7 +285,7 @@ group('测试 4: 主题色注入', function() {
   ];
 
   testCases.forEach(function(tc, i) {
-    const g = require('/tmp/xy-intro-card-test');
+    const g = require(TMP);
     g._ct_ref.a = tc.theme.a;
     g._ct_ref.b = tc.theme.b;
     g._ct_ref.mode = tc.mode;
@@ -263,7 +305,7 @@ group('测试 4: 主题色注入', function() {
 // 测试 4b: 浅色商务主题注入
 // ============================================================
 group('测试 4b: 浅色商务主题注入', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
 
   // neutral_morning (米白·晨雾)
   g._ct_ref.a = '#5a6b7c';
@@ -294,7 +336,7 @@ group('测试 4b: 浅色商务主题注入', function() {
 // 测试 4c: 暗色主题 meta theme-color 回归
 // ============================================================
 group('测试 4c: 暗色主题 meta theme-color 回归', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
   g._ct_ref.a = '#ff9d5c';
   g._ct_ref.b = '#ffd0a8';
   g._ct_ref.mode = 'dark';
@@ -318,10 +360,10 @@ group('测试 5: Footer 模式', function() {
 
   footerTests.forEach(function(ft) {
     const cfg = Object.assign({}, ocConfig, { footMode: ft.mode, footCustom: ft.customText || '' });
-    const doc = require('/tmp/xy-intro-card-test').buildDoc(cfg, { animate: false });
+    const doc = require(TMP).buildDoc(cfg, { animate: false });
 
     if (ft.mode === 'hidden') {
-      assert(!doc.includes('<div class="foot">') || doc.indexOf('<div class="foot">') === -1, 'hidden 模式不应显示 footer');
+      assert(doc.indexOf('<div class="foot">') === -1, 'hidden 模式不应显示 footer');
     } else {
       assert(doc.includes(ft.expect), ft.mode + ' 模式应包含: ' + ft.expect);
     }
@@ -333,14 +375,14 @@ group('测试 5: Footer 模式', function() {
 // ============================================================
 group('测试 6: 两种模式字段隔离', function() {
   // oc 模式不应包含 general 专属字段
-  const ocDoc = require('/tmp/xy-intro-card-test').buildDoc(ocConfig, { animate: false });
+  const ocDoc = require(TMP).buildDoc(ocConfig, { animate: false });
   assert(!ocDoc.includes('关于我'), 'oc 模式不应有"关于我"标签');
   assert(!ocDoc.includes('联系方式'), 'oc 模式不应有"联系方式"标签');
   assert(ocDoc.includes('个人信息'), 'oc 模式应有"个人信息"标签');
   assert(ocDoc.includes('游戏技能'), 'oc 模式应有"游戏技能"标签');
 
   // general 模式不应包含 oc 专属字段
-  const genDoc = require('/tmp/xy-intro-card-test').buildDoc(generalConfig, { animate: false });
+  const genDoc = require(TMP).buildDoc(generalConfig, { animate: false });
   assert(!genDoc.includes('年龄'), 'general 模式不应显示年龄');
   assert(!genDoc.includes('星座'), 'general 模式不应显示星座');
   assert(genDoc.includes('关于我'), 'general 模式应有"关于我"标签');
@@ -351,7 +393,7 @@ group('测试 6: 两种模式字段隔离', function() {
 // 测试 7: 行业预设数据注入（Phase 4）
 // ============================================================
 group('测试 7: 行业预设数据注入', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
 
   // 验证 3 个预设都有完整字段
   var presets = g.INDUSTRY_PRESETS || {};
@@ -393,7 +435,7 @@ group('测试 7: 行业预设数据注入', function() {
 // 测试 8: blob 颜色验证（Phase 4）
 // ============================================================
 group('测试 8: blob 颜色验证', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
 
   // 暗色主题 blob 应为高饱和活跃色
   g._ct_ref.a = '#ff9d5c';
@@ -436,7 +478,7 @@ group('测试 8: blob 颜色验证', function() {
 // 测试 9: getThemeVarValues 和 THEMES_CONFIG 导出（Phase 4）
 // ============================================================
 group('测试 9: 内部函数导出验证', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
 
   // 验证 getThemeVarValues 函数可访问
   assert(typeof g.getThemeVarValues === 'function', 'getThemeVarValues 应为函数');
@@ -494,7 +536,7 @@ group('测试 10: localStorage 版本迁移', function() {
 // 测试 11: 头像上传与处理（Phase 5）
 // ============================================================
 group('测试 11: 头像上传与处理', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
 
   // 验证 placeholder 函数生成正确占位图
   var cfg = Object.assign({}, ocConfig, { avatar: null });
@@ -519,7 +561,7 @@ group('测试 11: 头像上传与处理', function() {
 // 测试 12: 下载功能验证（Phase 5）
 // ============================================================
 group('测试 12: 下载功能验证', function() {
-  const g = require('/tmp/xy-intro-card-test');
+  const g = require(TMP);
 
   // 验证 buildDoc 输出有效的 HTML 文档结构
   var cfg = Object.assign({}, ocConfig, { title: '测试俱乐部', name: '测试用户' });
@@ -554,7 +596,7 @@ group('测试 13: 响应式断点检查', function() {
   const fs = require('fs');
   const path = require('path');
 
-  var htmlPath = path.join(__dirname, '..', '个人介绍卡生成器.html');
+  var htmlPath = path.join(__dirname, '..', 'index.html');
   var content = fs.readFileSync(htmlPath, 'utf8');
 
   // 验证关键断点存在（在整个文件中搜索）
@@ -578,7 +620,7 @@ group('测试 14: 动画降级与性能优化', function() {
   const fs = require('fs');
   const path = require('path');
 
-  var htmlPath = path.join(__dirname, '..', '个人介绍卡生成器.html');
+  var htmlPath = path.join(__dirname, '..', 'index.html');
   var content = fs.readFileSync(htmlPath, 'utf8');
 
   // 验证 prefers-reduced-motion 支持
@@ -602,8 +644,121 @@ group('测试 14: 动画降级与性能优化', function() {
 });
 
 // ============================================================
-// 测试结果汇总
+// 测试 15: 键盘导航验证（Phase 5）
 // ============================================================
+group('测试 15: 键盘导航验证', function() {
+  const fs = require('fs');
+  const path = require('path');
+
+  var htmlPath = path.join(__dirname, '..', 'index.html');
+  var content = fs.readFileSync(htmlPath, 'utf8');
+
+  // 验证主题色块 tabindex 属性
+  assert(content.indexOf("setAttribute('tabindex', '0')") >= 0, '主题色块应有 tabindex 属性');
+
+  // 验证主题色块 role="button"
+  assert(content.indexOf("setAttribute('role', 'button')") >= 0, '主题色块应有 role="button"');
+
+  // 验证主题色块 aria-label
+  assert(content.indexOf("setAttribute('aria-label'") >= 0, '主题色块应有 aria-label');
+
+  // 验证 Enter/Space 键处理
+  assert(content.indexOf('e.key === \'Enter\'') >= 0 || content.indexOf("e.key === 'Enter'") >= 0, '应有 Enter 键处理');
+  assert(content.indexOf("e.key === ' '") >= 0, '应有 Space 键处理');
+
+  // 验证错误提示 aria-describedby
+  assert(content.indexOf("setAttribute('aria-describedby'") >= 0, '错误提示应有 aria-describedby 关联');
+
+  // 验证错误提示 aria-live
+  assert(content.indexOf("setAttribute('aria-live'") >= 0, '错误提示应有 aria-live 属性');
+});
+
+// ============================================================
+// 测试 16: 预览更新（applyPreview）—— 回归防线
+// 背景：v3.1.0/v3.1.1 曾因 updatePreview 引用未定义变量而让「实时预览」
+// 静默失效近一个月，而当时全部测试依然通过。此用例直接调用预览写入逻辑，
+// 确保「配置 → 预览 DOM」这条链路被真实执行到。
+// ============================================================
+group('测试 16: 预览更新 applyPreview', function() {
+  const ex = require(TMP);
+  const setCalls = {};
+  const fakeCard = { innerHTML: '' };
+  const fakeDoc = {
+    documentElement: { style: { setProperty: function(k, v) { setCalls[k] = v; } } },
+    getElementById: function(id) { return id === 'card' ? fakeCard : null; }
+  };
+  const cfg = Object.assign({}, ocConfig);
+
+  let ok = false, threw = null;
+  try { ok = ex.applyPreview(fakeDoc, cfg); } catch (e) { threw = e; }
+  assert(threw === null, 'applyPreview 不应抛错' + (threw ? '（实际抛出 ' + threw.message + '）' : ''));
+  assert(ok === true, 'applyPreview 应返回 true');
+  assert(fakeCard.innerHTML.indexOf('小鱼') >= 0, '预览应写入表单里的名字');
+  assert(fakeCard.innerHTML.indexOf('undefined') < 0, '预览不应出现 undefined');
+  assert(Object.keys(setCalls).length > 0, '应把主题变量写到预览根节点');
+
+  // 边界：缺 doc / 缺 card 时安全返回 false，不抛错
+  assert(ex.applyPreview(null, cfg) === false, 'doc 为空时应安全返回 false');
+  assert(ex.applyPreview({}, cfg) === false, 'doc 缺 documentElement 时应安全返回 false');
+  assert(ex.applyPreview({ documentElement: { style: { setProperty: function(){} } }, getElementById: function(){ return null; } }, cfg) === false, '找不到 card 时应安全返回 false');
+
+  // 换个人名再写一次，确认内容真的跟着配置变（而非缓存旧值）
+  fakeCard.innerHTML = '';
+  ex.applyPreview(fakeDoc, Object.assign({}, cfg, { name: '另一个人' }));
+  assert(fakeCard.innerHTML.indexOf('另一个人') >= 0, '改名字后预览应同步更新');
+  assert(fakeCard.innerHTML.indexOf('小鱼') < 0, '旧内容不应残留');
+});
+
+// ============================================================
+// 测试 17: PNG 导出（Canvas 绘制）
+// 用桩 2D 上下文执行真实绘制代码，检查：不抛错、尺寸合理、
+// 不出 NaN 坐标、不把 undefined 写进颜色。
+// ============================================================
+group('测试 17: PNG 导出渲染', function() {
+  const ex = require(TMP);
+  const ops = ex.__ops;
+  ops.length = 0;
+  let canvas = null, err = null;
+  ex.renderCardPNG(Object.assign({}, ocConfig), function(c, e) { canvas = c; err = e; });
+
+  assert(!err, 'renderCardPNG 不应抛错' + (err ? '（' + err.message + '）' : ''));
+  assert(!!canvas, '应返回画布');
+  if (!canvas) return;
+  assert(canvas.width === 1080, '宽度应为 1080，实际 ' + canvas.width);
+  assert(canvas.height >= 1440, '高度应不小于 1440，实际 ' + canvas.height);
+
+  const texts = ops.filter(function(o) { return o.name === 'fillText'; }).map(function(o) { return String(o.args[0]); });
+  assert(texts.some(function(t) { return t.indexOf('小鱼') >= 0; }), '应把名字画进图里');
+  assert(texts.some(function(t) { return t.indexOf('文字陪聊') >= 0; }), '应画出技能标签');
+
+  const badNums = ops.filter(function(o) {
+    return o.args.some(function(a) { return typeof a === 'number' && !isFinite(a); });
+  });
+  assert(badNums.length === 0, '不应出现 NaN / Infinity 坐标，实际 ' + badNums.length + ' 处');
+
+  const badStyle = ops.filter(function(o) {
+    return String(o.fill).indexOf('undefined') >= 0 || String(o.stroke).indexOf('undefined') >= 0;
+  });
+  assert(badStyle.length === 0, '颜色里不应出现 undefined，实际 ' + badStyle.length + ' 处');
+
+  // 通用名片（浅色主题 + 长简介）也要能导出，且自动变高
+  ops.length = 0;
+  let canvas2 = null, err2 = null;
+  const longBio = new Array(120).join('这是一段用于测试自动换行与高度自适应的简介。');
+  ex.renderCardPNG({
+    mode: 'general', theme: ex.THEMES_CONFIG.neutral_morning, avatar: null,
+    title: '林小雨', script: '产品经理', bio: longBio,
+    contact: ['微信：a', '邮箱：b@example.com'], signCn: '让好产品被看见', signEn: 'Build things that matter.',
+    footMode: 'default', footCustom: ''
+  }, function(c, e) { canvas2 = c; err2 = e; });
+  assert(!err2, '浅色主题不应抛错' + (err2 ? '（' + err2.message + '）' : ''));
+  assert(!!canvas2 && canvas2.height > 1440, '长简介应让画布自动变高');
+});
+
+// ============================================================
+// 测试结果汇总（必须放在所有测试之后，否则会掩盖后续失败）
+// ============================================================
+try { fs.unlinkSync(TMP); } catch (e) {}
 console.log('\n' + '='.repeat(50));
 console.log('测试结果: ' + passed + ' 通过, ' + failed + ' 失败');
 console.log('='.repeat(50));
@@ -611,33 +766,3 @@ console.log('='.repeat(50));
 if (failed > 0) {
   process.exit(1);
 }
-
-// ============================================================
-// 测试 15: 键盘导航验证（Phase 5）
-// ============================================================
-group('测试 15: 键盘导航验证', function() {
-  const fs = require('fs');
-  const path = require('path');
-
-  var htmlPath = path.join(__dirname, '..', '个人介绍卡生成器.html');
-  var content = fs.readFileSync(htmlPath, 'utf8');
-
-  // 验证主题色块 tabindex 属性
-  assert(content.indexOf("setAttribute('tabindex', '0')") >= 0 || content.indexOf('tabindex') >= 0, '主题色块应有 tabindex 属性');
-
-  // 验证主题色块 role="button"
-  assert(content.indexOf("setAttribute('role', 'button')") >= 0 || content.indexOf('role="button"') >= 0 || content.indexOf("role='button'") >= 0, '主题色块应有 role="button"');
-
-  // 验证主题色块 aria-label
-  assert(content.indexOf("setAttribute('aria-label'") >= 0 || content.indexOf('aria-label') >= 0, '主题色块应有 aria-label');
-
-  // 验证 Enter/Space 键处理
-  assert(content.indexOf('e.key === \'Enter\'') >= 0 || content.indexOf("e.key === 'Enter'") >= 0, '应有 Enter 键处理');
-  assert(content.indexOf('e.key === \' \'') >= 0 || content.indexOf("e.key === ' '") >= 0 || content.indexOf('e.key === \' \'') >= 0, '应有 Space 键处理');
-
-  // 验证错误提示 aria-describedby
-  assert(content.indexOf("setAttribute('aria-describedby'") >= 0 || content.indexOf('aria-describedby') >= 0, '错误提示应有 aria-describedby 关联');
-
-  // 验证错误提示 aria-live
-  assert(content.indexOf("setAttribute('aria-live'") >= 0 || content.indexOf('aria-live') >= 0, '错误提示应有 aria-live 属性');
-});

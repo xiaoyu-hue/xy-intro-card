@@ -4,7 +4,7 @@
 
 ## 1. Generator Distribution
 
-`个人介绍卡生成器.html` is all there is. Just deliver this file to users:
+`index.html` is all there is. Just deliver this file to users:
 
 - Send directly (WeChat / email / cloud storage)
 - Static hosting: GitHub Pages, Vercel, Netlify, object storage static sites, etc. — just drop the file in and it's accessible

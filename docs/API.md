@@ -181,7 +181,7 @@ window.XYIntroCard.onCardExport.push(function(html) {
 ## 5. 使用示例
 
 ```html
-<script src="个人介绍卡生成器.html"></script>
+<script src="index.html"></script>
 <script>
   // 添加自定义主题
   window.XYIntroCard.addTheme('my-brand', {

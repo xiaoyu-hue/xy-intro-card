@@ -1,6 +1,6 @@
 # 架构说明（ARCHITECTURE）
 
-> 本文描述 `个人介绍卡生成器.html` 的内部结构、渲染与导出机制、主题色计算与性能策略。改结构或导出逻辑前先读本文。
+> 本文描述 `index.html` 的内部结构、渲染与导出机制、主题色计算与性能策略。改结构或导出逻辑前先读本文。
 
 ## 1. 单文件结构
 
@@ -35,13 +35,16 @@
 | SECTION 7 | 预览更新 | `loadPreview()`, `updatePreview()`, `scheduleUpdate()`, `setMode()` |
 | SECTION 8 | 本地持久化 | `saveState()`, `loadState()` |
 | SECTION 9 | 输入校验 | `addInputFeedback()` |
-| SECTION 10 | 交互绑定 | `setup()` |
-| SECTION 11 | 全局 API | `window.XYIntroCard` |
+| SECTION 10 | 交互绑定 | `bindEvents()`, `bindModeEvents()`, `bindDownloadEvents()`, `bindResetEvents()` |
+| SECTION 11 | PNG 导出 | `renderCardPNG(cfg, done)`, `exportPNG()`, `pngPalette()` |
+| SECTION 12 | 主入口 | `setup()` |
+| SECTION 13 | 全局 API | `window.XYIntroCard` |
 
 ## 3. 渲染机制（实时预览）
 
-- 左侧表单的每个输入绑定 `input` 事件，改动即调用 `render()`。
-- `render()` 读取所有字段 → 组装配置对象 `cfg` → 调 `buildCardInner(cfg)` 生成卡片 HTML 片段 → 写入右侧 `<iframe>` 的 `srcdoc`。
+- 左侧表单的每个输入绑定 `input` 事件，改动经 `scheduleUpdate()` 防抖后调用 `updatePreview()`。
+- `updatePreview()` 读取所有字段 → 组装配置对象 `cfg` → `applyPreview(doc, cfg)` 调 `buildCardInner(cfg, false)` 生成卡片 HTML 片段 → 写入右侧 `<iframe>` 的 `srcdoc`。
+- 预览如果抛错，会在预览下方显示可见错误（`.preview-error`），而不是静默失败。
 - 预览 iframe 内联了 `CARD_CSS` 与一段轻量入场动画脚本，使预览与最终导出卡视觉一致。
 
 ## 4. 主题色计算（themeInfo）
@@ -72,6 +75,20 @@
 9. 拼接 `<!DOCTYPE html>` + `<style>` + 卡片 DOM + 内联动画脚本（脚本中 `</script>` 写作 `<\/script>` 避免提前闭合）。
 
 导出卡**不依赖生成器本文件**，可单独发给任何人、任意浏览器打开。
+
+### 5.1 PNG 导出（renderCardPNG）
+
+`renderCardPNG(cfg, done)` 用 Canvas 2D 把同一份配置**重绘**成一张图片，而不是对 DOM 截图：
+
+- **不用 html2canvas / foreignObject**：两者都依赖浏览器栅格化 DOM，canvas 里会丢失 `backdrop-filter`（毛玻璃）与滤镜，且跨浏览器差异大；手绘虽多写代码，但输出稳定、可测、体积为零。
+- 流程：先在 1080px 宽的离屏 canvas 上按 `PNG_WIDTH` 排版（头像 → 标题 → 花体英文 → 分隔线 → 字段 → 标签 chips → 签名 → 页脚），拿到内容底部 `contentBottom` 后再建最终画布，高度 = `contentBottom + 边距`，自适应长短内容。
+- 排版辅助：`pnWrap()` 按字符断行（适配中文）、`pnWidth()` 量宽、`pnRound()` 圆角矩形、`pnChips()` 流式排列标签。
+- 颜色来自 `pngPalette(theme)`：亮色主题读 `palette`，暗色主题用默认深色调 + 主题的 `a/b` 强调色，保证 PNG 与 HTML 卡片观感一致。
+- 头像：有上传图则 `drawImage` 圆形裁剪；没有则画主题色圆底 + 名字首字（与 HTML 占位图同构）。
+- `done(canvas, err)` 回调式（不用 Promise 链），无头像时**同步返回**，便于 Node 测试；真实下载走 `canvas.toBlob()` + `URL.createObjectURL()` + `<a download>`。
+- 测试见 `tests/logic.test.js` 测试 17：用 2D 上下文桩记录 `fillText` 与坐标，断言不出现 `NaN/Infinity`、不把 `undefined` 写进颜色、长简介能把画布撑高。
+
+> 已知边界：导出 PNG 用的是系统字体渲染（中文 PingFang / 微软雅黑 / Noto Sans SC），和网页里看到的字形可能有微小差异；这是「不内嵌字体」的代价，也与卡片 HTML 的行为一致。
 
 ## 6. 头像压缩
 

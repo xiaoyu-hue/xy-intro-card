@@ -10,7 +10,7 @@
 
 ```bash
 # 1. 确认代码版本号
-grep "version:" 个人介绍卡生成器.html
+grep "version:" index.html
 
 # 2. 确认文档版本号
 grep -E "v[0-9]+\.[0-9]+\.[0-9]+" docs/CHANGELOG.md | head -1
@@ -117,7 +117,7 @@ v3.0.2 - 全面修复：代码拆分 + 测试补充 + ARIA完善
 
 ```
 /var/minis/workspace/xy-intro-card-review/
-├── 个人介绍卡生成器.html    # 主应用（单文件）
+├── index.html    # 主应用（单文件）
 ├── tests/
 │   └── logic.test.js       # 逻辑测试（102项）
 ├── docs/

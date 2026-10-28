@@ -2,6 +2,32 @@
 
 > 本项目遵循 [语义化版本](https://semver.org/zh-CN/)（SemVer）。格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/)。
 
+## [3.2.0] - 2026-10-28
+
+### feat
+
+- **导出 PNG（新功能）**：预览下方新增「导出 PNG（发微信）」按钮，用 Canvas 2D 按卡片视觉重绘一张 1080px 宽、按内容自适应高度的竖版长图，直接下载到手机/电脑，可发微信、朋友圈、小红书。全程零依赖，不使用 html2canvas / foreignObject（它们在 canvas 里会丢失毛玻璃与滤镜）。绘制逻辑为纯函数 `renderCardPNG(cfg, done)`，Node 里可测。
+- **首页地址改为 `index.html`**：原 `个人介绍卡生成器.html` 改名为 `index.html`，站点根地址 <https://xiaoyu-hue.github.io/xy-intro-card/> 直接打开应用，不再经过一次跳转；旧路径保留一个跳转页，历史链接不会 404。
+- **默认进入「通用名片」**：首屏不再默认 XY 俱乐部演示数据，头部文案改为通用定位（人设卡 / 通用名片都能用）；「人设卡」与三份示例页仍在。
+
+### fix
+
+- **实时预览恢复（重要）**：`updatePreview()` 里误用了未定义变量 `cfg`（应为 `c`），从 v3.1.0 起「实时预览」在页面首次加载后就不再更新，而下载功能不受影响。现把预览写入逻辑拆成纯函数 `applyPreview(doc, c)`，失败时在预览下方显示可见错误，不再静默失败。
+- **转义补漏**：`esc()` 未转义单引号，而卡片标题拼接在单引号属性中，可被闭合后注入事件处理器。现补 `'` → `&#39;`，`data-text` 改为双引号属性。
+- **示例卡重导**：3 份 `示例-*.html` 使用 v3.1.2 重新导出（旧文件残留 `--name-gradient-start:undefined` 等旧产物）。
+
+### chore
+
+- 测试：临时文件改用 `os.tmpdir()`，修复 Windows / Android 下 `EACCES`；测试汇总移到所有用例之后（此前最后一组失败不会出现在汇总里）；新增「测试 16 预览更新」，直接调用 `applyPreview` 防止同类回归。
+- 版本号统一为 3.2.0（代码注释 / `window.XYIntroCard.version` / CHANGELOG 三处一致）。
+- README 修正字体说明，与 ADR-0002（移除内嵌字体）保持一致。
+
+### docs
+
+- 新增 `<meta name="description">`、`theme-color`、Open Graph / Twitter 基础标签，分享链接时有标题与摘要（`og:image` 需补一张真实截图后启用，暂未加）。
+- 新增 `docs/DECISION_REVIEW.md`（发版 / 不可逆操作前的决策审查清单）；此前 README、AGENTS、CONTRIBUTING 与多份 docs 共 7 处链接指向这个不存在的文件。
+- README 中英文同步：标题从「XY 个人介绍模板工具」改为「个人介绍卡生成器」，特性列表补充 PNG 导出，修正英文版「字体内嵌」的错误描述。
+
 ## [3.1.1] - 2026-10-27
 
 ### docs

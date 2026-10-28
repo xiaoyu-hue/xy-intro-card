@@ -10,21 +10,21 @@ echo "▶ xy-intro-card 构建检查"
 echo ""
 
 # 检查主文件是否存在
-if [ ! -f "个人介绍卡生成器.html" ]; then
-  echo "❌ 主文件 个人介绍卡生成器.html 不存在"
+if [ ! -f "index.html" ]; then
+  echo "❌ 主文件 index.html 不存在"
   exit 1
 fi
 echo "✅ 主文件存在"
 
 # 检查 HTML 结构
-if grep -q '<!DOCTYPE html>' 个人介绍卡生成器.html; then
+if grep -q '<!DOCTYPE html>' index.html; then
   echo "✅ 包含 DOCTYPE"
 else
   echo "❌ 缺少 DOCTYPE"
   exit 1
 fi
 
-if grep -q '<html lang="zh-CN">' 个人介绍卡生成器.html; then
+if grep -q '<html lang="zh-CN">' index.html; then
   echo "✅ 包含 html 标签和 lang 属性"
 else
   echo "❌ 缺少 lang 属性"
@@ -32,14 +32,14 @@ else
 fi
 
 # 检查核心函数
-if grep -q 'function buildDoc' 个人介绍卡生成器.html; then
+if grep -q 'function buildDoc' index.html; then
   echo "✅ 包含 buildDoc 函数"
 else
   echo "❌ 缺少 buildDoc 函数"
   exit 1
 fi
 
-if grep -q 'function esc' 个人介绍卡生成器.html; then
+if grep -q 'function esc' index.html; then
   echo "✅ 包含 esc 转义函数"
 else
   echo "❌ 缺少 XSS 防护函数"
@@ -47,14 +47,14 @@ else
 fi
 
 # 检查 CSP meta 标签
-if grep -q 'Content-Security-Policy' 个人介绍卡生成器.html; then
+if grep -q 'Content-Security-Policy' index.html; then
   echo "✅ 包含 CSP 安全策略"
 else
   echo "⚠️  缺少 CSP meta 标签（建议添加）"
 fi
 
 # 检查文件大小
-SIZE=$(wc -c < 个人介绍卡生成器.html)
+SIZE=$(wc -c < index.html)
 if [ "$SIZE" -lt 100000 ]; then
   echo "✅ 文件大小合理（${SIZE} bytes）"
 else

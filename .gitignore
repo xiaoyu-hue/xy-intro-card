@@ -11,7 +11,9 @@ package-lock.json
 *.log
 
 # 审查报告与内部工作文档（不提交到 GitHub）
-docs/*_REVIEW.md
+docs/ARCHITECTURE_REVIEW.md
+docs/CODE_REVIEW.md
+docs/COMPREHENSIVE_REVIEW.md
 docs/FIX_SUMMARY.md
 docs/FIX_SUMMARY_*.md
 docs/IMPLEMENTATION_PLAN.md
